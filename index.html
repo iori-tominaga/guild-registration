@@ -1,423 +1,793 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>冒険者ギルド 登録所</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒険者ギルド 登録所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+    overflow: hidden;
+  }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  /* Stars background */
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 90%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 10%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 85%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 95% 65%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 5%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 15% 35%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 55%, #fff 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
 
-    body {
-      min-height: 100vh;
-      background-color: #0d0d1a;
-      background-image:
-        radial-gradient(ellipse at 20% 50%, rgba(60, 20, 80, 0.4) 0%, transparent 60%),
-        radial-gradient(ellipse at 80% 20%, rgba(20, 40, 80, 0.4) 0%, transparent 60%),
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 16px;
-      font-family: 'Noto Serif JP', serif;
-    }
+  /* DQ Window */
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow:
+      inset 0 0 0 2px #ffffff,
+      0 0 0 2px #000,
+      6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+  }
+  .dq-window::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 2px solid #4848b8;
+    pointer-events: none;
+  }
 
-    /* Stars */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
-        radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
-        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.8) 0%, transparent 100%),
-        radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
-        radial-gradient(1px 1px at 92% 80%, rgba(255,255,255,0.9) 0%, transparent 100%),
-        radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
-        radial-gradient(1px 1px at 60% 88%, rgba(255,255,255,0.7) 0%, transparent 100%),
-        radial-gradient(1px 1px at 33% 55%, rgba(255,255,255,0.6) 0%, transparent 100%);
-      pointer-events: none;
-      z-index: 0;
-    }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 640px;
-    }
+  .dq-content {
+    padding: 20px;
+  }
 
-    /* Guild emblem at top */
-    .emblem {
-      text-align: center;
-      margin-bottom: 24px;
-    }
+  /* Blinking cursor */
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+  .blink { animation: blink 0.8s steps(1) infinite; }
 
-    .emblem-icon {
-      font-size: 56px;
-      line-height: 1;
-      filter: drop-shadow(0 0 16px rgba(212,175,55,0.8));
-      animation: glow-pulse 3s ease-in-out infinite;
-    }
+  /* Menu cursor arrow */
+  .cursor-arrow {
+    color: #ffec40;
+    display: inline-block;
+    margin-right: 8px;
+    font-size: 10px;
+  }
 
-    @keyframes glow-pulse {
-      0%, 100% { filter: drop-shadow(0 0 16px rgba(212,175,55,0.8)); }
-      50%       { filter: drop-shadow(0 0 28px rgba(212,175,55,1)); }
-    }
+  /* Input DQ style */
+  .dq-input {
+    background: #000030;
+    border: 3px solid #a0a0a0;
+    outline: none;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    width: 100%;
+    caret-color: #ffec40;
+    letter-spacing: 1px;
+    box-shadow: inset 2px 2px 0 #000060, inset -2px -2px 0 #000060;
+  }
+  .dq-input:focus {
+    border-color: #ffec40;
+  }
 
-    .guild-label {
-      font-family: 'Cinzel', serif;
-      color: #d4af37;
-      font-size: 11px;
-      letter-spacing: 6px;
-      text-transform: uppercase;
-      margin-top: 8px;
-      opacity: 0.7;
-    }
+  /* Textarea */
+  .dq-textarea {
+    background: #000030;
+    border: 3px solid #a0a0a0;
+    outline: none;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 10px;
+    padding: 10px 12px;
+    width: 100%;
+    resize: none;
+    line-height: 1.8;
+    caret-color: #ffec40;
+    box-shadow: inset 2px 2px 0 #000060, inset -2px -2px 0 #000060;
+  }
+  .dq-textarea:focus { border-color: #ffec40; }
 
-    /* Parchment card */
-    .card {
-      background: linear-gradient(160deg, #2a1f0e 0%, #1c1408 60%, #221a0a 100%);
-      border: 1px solid rgba(212,175,55,0.3);
-      border-radius: 4px;
-      padding: 40px 40px 36px;
-      box-shadow:
-        0 0 0 1px rgba(212,175,55,0.1),
-        0 0 40px rgba(0,0,0,0.8),
-        inset 0 0 60px rgba(212,175,55,0.03);
-      position: relative;
-    }
+  /* Button */
+  .dq-btn {
+    background: #000060;
+    border: 3px solid #c8c8c8;
+    outline: 2px solid #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 28px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    position: relative;
+    transition: transform 0.05s;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .dq-btn:hover {
+    background: #2020a0;
+    color: #ffec40;
+    border-color: #ffec40;
+  }
+  .dq-btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+  }
+  .dq-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
-    /* Corner ornaments */
-    .card::before, .card::after {
-      content: '✦';
-      position: absolute;
-      color: rgba(212,175,55,0.4);
-      font-size: 18px;
-    }
-    .card::before { top: 10px; left: 14px; }
-    .card::after  { bottom: 10px; right: 14px; }
+  /* Class menu item */
+  .class-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 10px;
+    letter-spacing: 1px;
+    border-bottom: 1px solid #1a1a60;
+    transition: background 0.1s;
+  }
+  .class-item:hover, .class-item.selected {
+    background: #1a1a80;
+  }
+  .class-item.active {
+    background: #002080;
+    color: #ffec40;
+  }
 
-    .card-title {
-      font-family: 'Cinzel', serif;
-      color: #d4af37;
-      font-size: 22px;
-      text-align: center;
-      letter-spacing: 3px;
-      margin-bottom: 6px;
-      text-shadow: 0 0 20px rgba(212,175,55,0.5);
-    }
+  /* Stats bar */
+  .stat-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .stat-label {
+    font-size: 8px;
+    color: #a0c0ff;
+    width: 36px;
+    flex-shrink: 0;
+  }
+  .stat-track {
+    flex: 1;
+    height: 8px;
+    background: #000030;
+    border: 2px solid #404080;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #20c020, #40ff40);
+    transition: width 0.6s ease;
+  }
 
-    .card-subtitle {
-      text-align: center;
-      color: rgba(212,175,55,0.5);
-      font-size: 12px;
-      letter-spacing: 2px;
-      margin-bottom: 32px;
-    }
+  /* Card */
+  .guild-card {
+    background: linear-gradient(135deg, #1a0050, #000060);
+    border: 4px solid #ffd700;
+    box-shadow:
+      inset 0 0 0 2px #000,
+      inset 0 0 20px rgba(255,200,0,0.08),
+      0 0 0 2px #000,
+      6px 6px 0 #000;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .guild-card::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    pointer-events: none;
+  }
 
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin: 0 0 32px;
-    }
-    .divider::before, .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(212,175,55,0.4), transparent);
-    }
-    .divider-icon {
-      color: rgba(212,175,55,0.6);
-      font-size: 14px;
-    }
+  /* Typewriter text */
+  .typewriter { display: inline; }
 
-    /* Form fields */
-    .field {
-      margin-bottom: 24px;
-    }
+  /* Party status panel */
+  .status-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8px;
+    padding: 4px 0;
+    border-bottom: 1px dotted #2a2a80;
+    color: #c0d8ff;
+  }
 
-    .field-label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: #d4af37;
-      font-size: 12px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      margin-bottom: 8px;
-      font-family: 'Cinzel', serif;
-    }
+  /* Pixel art sprite placeholder */
+  .sprite-container {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+  }
 
-    .field-label .icon {
-      font-size: 14px;
-      opacity: 0.8;
-    }
+  /* Decorative corner */
+  .corner-gem {
+    position: absolute;
+    width: 10px; height: 10px;
+    background: #ffd700;
+    box-shadow: 0 0 4px #ffa500;
+  }
 
-    input[type="text"],
-    select,
-    textarea {
-      width: 100%;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid rgba(212,175,55,0.25);
-      border-radius: 2px;
-      color: #e8d9a0;
-      font-family: 'Noto Serif JP', serif;
-      font-size: 15px;
-      padding: 10px 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      appearance: none;
-    }
+  /* Scrollable list */
+  .scroll-list {
+    max-height: 240px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #4040c0 #000030;
+  }
 
-    input[type="text"]:focus,
-    select:focus,
-    textarea:focus {
-      border-color: rgba(212,175,55,0.7);
-      box-shadow: 0 0 12px rgba(212,175,55,0.15), inset 0 0 8px rgba(212,175,55,0.04);
-    }
+  /* Success particles */
+  @keyframes float-up {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-80px) scale(0); opacity: 0; }
+  }
+  .particle {
+    position: absolute;
+    pointer-events: none;
+    animation: float-up 1.2s ease-out forwards;
+    font-size: 16px;
+  }
 
-    input::placeholder,
-    textarea::placeholder {
-      color: rgba(212,175,55,0.25);
-      font-size: 14px;
-    }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeIn 0.3s ease-out both; }
 
-    select {
-      cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4af37' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 36px;
-    }
+  @keyframes screenFlash {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+  }
 
-    select option {
-      background: #1c1408;
-      color: #e8d9a0;
-    }
+  .level-up-flash {
+    position: fixed; inset: 0;
+    background: white;
+    pointer-events: none;
+    animation: screenFlash 0.6s ease-out forwards;
+    z-index: 100;
+  }
 
-    textarea {
-      resize: vertical;
-      min-height: 110px;
-      line-height: 1.7;
-    }
+  /* Progress dots */
+  .progress-dots {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 12px;
+  }
+  .dot {
+    width: 10px; height: 10px;
+    background: #2a2a80;
+    border: 2px solid #4040a0;
+  }
+  .dot.active { background: #ffec40; border-color: #ffec40; }
+  .dot.done { background: #40c040; border-color: #40c040; }
 
-    /* Submit button */
-    .btn-wrap {
-      margin-top: 32px;
-      text-align: center;
-    }
-
-    .btn-register {
-      background: linear-gradient(135deg, #7a5c00 0%, #d4af37 50%, #7a5c00 100%);
-      background-size: 200% 200%;
-      color: #0d0d1a;
-      font-family: 'Cinzel', serif;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: 4px;
-      border: none;
-      border-radius: 2px;
-      padding: 14px 48px;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: background-position 0.4s, box-shadow 0.3s, transform 0.1s;
-      box-shadow: 0 0 20px rgba(212,175,55,0.3);
-    }
-
-    .btn-register:hover {
-      background-position: right center;
-      box-shadow: 0 0 32px rgba(212,175,55,0.6);
-    }
-
-    .btn-register:active {
-      transform: scale(0.97);
-    }
-
-    /* Result card */
-    .result-card {
-      display: none;
-      background: linear-gradient(160deg, #0a1a0a 0%, #081208 100%);
-      border: 1px solid rgba(80,200,120,0.3);
-      border-radius: 4px;
-      padding: 32px;
-      margin-top: 24px;
-      box-shadow: 0 0 30px rgba(80,200,120,0.1);
-      position: relative;
-      animation: fade-in 0.6s ease;
-    }
-
-    @keyframes fade-in {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .result-card.show { display: block; }
-
-    .result-header {
-      font-family: 'Cinzel', serif;
-      color: #50c878;
-      font-size: 13px;
-      letter-spacing: 4px;
-      text-align: center;
-      margin-bottom: 20px;
-      text-shadow: 0 0 14px rgba(80,200,120,0.6);
-    }
-
-    .result-row {
-      display: flex;
-      gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid rgba(80,200,120,0.1);
-      font-size: 14px;
-    }
-    .result-row:last-child { border-bottom: none; }
-
-    .result-key {
-      color: rgba(80,200,120,0.7);
-      font-family: 'Cinzel', serif;
-      font-size: 11px;
-      letter-spacing: 2px;
-      min-width: 90px;
-      padding-top: 2px;
-    }
-
-    .result-val {
-      color: #c8f0d8;
-      line-height: 1.7;
-      word-break: break-word;
-    }
-
-    .fanfare {
-      text-align: center;
-      font-size: 28px;
-      margin-bottom: 12px;
-      animation: bounce 0.6s ease;
-    }
-
-    @keyframes bounce {
-      0%   { transform: scale(0.5); opacity: 0; }
-      70%  { transform: scale(1.15); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-  </style>
+  /* Scroll indicator */
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
+  .scroll-indicator { animation: bounce 1s infinite; display: inline-block; }
+</style>
 </head>
 <body>
+<div class="stars"></div>
+<div id="root"></div>
 
-  <div class="container">
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
 
-    <div class="emblem">
-      <div class="emblem-icon">⚔️</div>
-      <div class="guild-label">Adventurer's Guild</div>
+// ─── Audio ──────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  return audioCtx;
+}
+function beep(freq=440, dur=0.08, type='square', vol=0.15) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function cursorSound() { beep(800, 0.05, 'square', 0.1); }
+function selectSound() { beep(1200, 0.1, 'square', 0.15); beep(1500, 0.1, 'square', 0.15); }
+function typeSound() { if (Math.random() > 0.6) beep(600 + Math.random()*200, 0.03, 'square', 0.05); }
+function fanfareSound() {
+  [523,659,784,1047].forEach((f,i) => {
+    setTimeout(() => beep(f, 0.18, 'square', 0.2), i*120);
+  });
+}
+function cancelSound() { beep(300, 0.15, 'square', 0.12); }
+
+// ─── Typewriter Hook ─────────────────────────────────────────────
+function useTypewriter(text, speed=40, active=true) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) { setDisplayed(text); setDone(true); return; }
+    setDisplayed('');
+    setDone(false);
+    let i = 0;
+    const tick = setInterval(() => {
+      if (i >= text.length) { clearInterval(tick); setDone(true); return; }
+      setDisplayed(text.slice(0, i+1));
+      typeSound();
+      i++;
+    }, speed);
+    return () => clearInterval(tick);
+  }, [text, active]);
+  return [displayed, done];
+}
+
+// ─── Classes ─────────────────────────────────────────────────────
+const CLASSES = [
+  { id:'warrior',  label:'せんし',     icon:'⚔️',  stats:{力:90,素早:50,守備:80,魔力:20,回復:10} },
+  { id:'mage',     label:'まほうつかい', icon:'🔮',  stats:{力:20,素早:70,守備:20,魔力:100,回復:30} },
+  { id:'priest',   label:'そうりょ',    icon:'✨',  stats:{力:40,素早:50,守備:60,魔力:60,回復:100} },
+  { id:'thief',    label:'とうぞく',    icon:'🗡️',  stats:{力:60,素早:100,守備:40,魔力:30,回復:20} },
+  { id:'merchant', label:'しょうにん',  icon:'💰',  stats:{力:50,素早:60,守備:50,魔力:40,回復:40} },
+  { id:'martial',  label:'ぶとうか',    icon:'👊',  stats:{力:80,素早:80,守備:70,魔力:10,回復:20} },
+  { id:'bard',     label:'うたうたい',  icon:'🎵',  stats:{力:30,素早:70,守備:30,魔力:70,回復:60} },
+  { id:'sage',     label:'けんじゃ',    icon:'📖',  stats:{力:50,素早:60,守備:50,魔力:90,回復:80} },
+  { id:'other',    label:'その他',      icon:'❓',  stats:{力:50,素早:50,守備:50,魔力:50,回復:50} },
+];
+
+// ─── Sprite (pixel art style SVG) ────────────────────────────────
+function ClassSprite({ cls }) {
+  const colors = {
+    warrior:  ['#e05050','#c03030','#f08080','#ffd700'],
+    mage:     ['#8050e0','#6030c0','#c090ff','#40ffff'],
+    priest:   ['#50e0e0','#30c0c0','#90ffff','#ffffff'],
+    thief:    ['#404040','#202020','#808080','#40ff40'],
+    merchant: ['#e0a040','#c08020','#ffd080','#ffffff'],
+    martial:  ['#e08040','#c06020','#f0a060','#ff4040'],
+    bard:     ['#e050a0','#c03080','#f090d0','#ffff40'],
+    sage:     ['#4080e0','#2060c0','#80c0ff','#ffd700'],
+    other:    ['#808080','#606060','#a0a0a0','#ffffff'],
+  };
+  const c = colors[cls] || colors.other;
+  // Simple pixel hero
+  return (
+    <svg width="48" height="64" viewBox="0 0 12 16" style={{imageRendering:'pixelated', display:'block'}}>
+      {/* head */}
+      <rect x="3" y="0" width="6" height="6" fill={c[2]}/>
+      <rect x="4" y="2" width="1" height="1" fill="#000"/>
+      <rect x="7" y="2" width="1" height="1" fill="#000"/>
+      <rect x="4" y="4" width="4" height="1" fill="#000"/>
+      {/* body */}
+      <rect x="2" y="6" width="8" height="5" fill={c[0]}/>
+      <rect x="3" y="7" width="6" height="1" fill={c[3]} opacity="0.5"/>
+      {/* arms */}
+      <rect x="0" y="6" width="2" height="4" fill={c[1]}/>
+      <rect x="10" y="6" width="2" height="4" fill={c[1]}/>
+      {/* legs */}
+      <rect x="2" y="11" width="3" height="5" fill={c[1]}/>
+      <rect x="7" y="11" width="3" height="5" fill={c[1]}/>
+      {/* feet */}
+      <rect x="2" y="14" width="4" height="2" fill="#3a2010"/>
+      <rect x="7" y="14" width="4" height="2" fill="#3a2010"/>
+    </svg>
+  );
+}
+
+// ─── DQ Window ───────────────────────────────────────────────────
+function DQWindow({ title, children, style }) {
+  return (
+    <div className="dq-window" style={style}>
+      {title && <div className="dq-title-bar">{title}</div>}
+      <div className="dq-content">{children}</div>
     </div>
+  );
+}
 
-    <div class="card">
-      <div class="card-title">冒険者ギルド 登録所</div>
-      <div class="card-subtitle">— REGISTRATION DESK —</div>
-
-      <div class="divider"><span class="divider-icon">◆</span></div>
-
-      <form id="guildForm" novalidate>
-
-        <div class="field">
-          <label class="field-label" for="name">
-            <span class="icon">📜</span> 冒険者の名
-          </label>
-          <input
-            type="text"
-            id="name"
-            placeholder="例: アリア・シルバーウィンド"
-            maxlength="40"
-            required
-          />
+// ─── Stat Bars ────────────────────────────────────────────────────
+function StatBars({ stats }) {
+  return (
+    <div>
+      {Object.entries(stats).map(([k,v]) => (
+        <div key={k} className="stat-bar">
+          <span className="stat-label">{k}</span>
+          <div className="stat-track">
+            <div className="stat-fill" style={{width: v+'%'}}/>
+          </div>
+          <span style={{fontSize:7, color:'#a0c0ff', width:22}}>{v}</span>
         </div>
+      ))}
+    </div>
+  );
+}
 
-        <div class="field">
-          <label class="field-label" for="job">
-            <span class="icon">⚔️</span> 職業・クラス
-          </label>
-          <select id="job" required>
-            <option value="" disabled selected>── 職業を選べ ──</option>
-            <option value="戦士">⚔️  戦士 (Warrior)</option>
-            <option value="魔法使い">🔮  魔法使い (Mage)</option>
-            <option value="弓使い">🏹  弓使い (Archer)</option>
-            <option value="盗賊">🗡️  盗賊 (Rogue)</option>
-            <option value="僧侶">✨  僧侶 (Cleric)</option>
-            <option value="吟遊詩人">🎸  吟遊詩人 (Bard)</option>
-            <option value="賢者">📚  賢者 (Sage)</option>
-            <option value="錬金術師">⚗️  錬金術師 (Alchemist)</option>
-            <option value="その他">🌟  その他</option>
-          </select>
+// ─── Step 1: Name ─────────────────────────────────────────────────
+function StepName({ onNext }) {
+  const [name, setName] = useState('');
+  const [twText, twDone] = useTypewriter('なまえをおしえてください', 60);
+  const inputRef = useRef();
+  useEffect(() => { if (twDone) inputRef.current?.focus(); }, [twDone]);
+  return (
+    <div className="fade-in">
+      <div style={{marginBottom:16, lineHeight:2, fontSize:11, color:'#c0d8ff', minHeight:32}}>
+        {twText}<span className="blink" style={{opacity: twDone ? 0 : 1}}>█</span>
+      </div>
+      <div style={{marginBottom:20}}>
+        <input
+          ref={inputRef}
+          className="dq-input"
+          maxLength={10}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={e => { if (e.key==='Enter' && name.trim()) { selectSound(); onNext(name.trim()); }}}
+          placeholder="なまえ (最大10文字)"
+          spellCheck={false}
+          autoComplete="off"
+        />
+        <div style={{textAlign:'right', fontSize:8, color:'#6070c0', marginTop:6}}>{name.length}/10</div>
+      </div>
+      <div style={{display:'flex', justifyContent:'flex-end'}}>
+        <button
+          className="dq-btn"
+          disabled={!name.trim()}
+          onClick={() => { selectSound(); onNext(name.trim()); }}
+        >▶ けってい</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step 2: Class ────────────────────────────────────────────────
+function StepClass({ name, onNext, onBack }) {
+  const [cursor, setCursor] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const prompt = `${name}のしょくぎょうをえらんでください`;
+  const [twText, twDone] = useTypewriter(prompt, 50);
+
+  useEffect(() => {
+    const handler = e => {
+      if (e.key === 'ArrowDown') { cursorSound(); setCursor(c => Math.min(c+1, CLASSES.length-1)); }
+      if (e.key === 'ArrowUp')   { cursorSound(); setCursor(c => Math.max(c-1, 0)); }
+      if (e.key === 'Enter' && twDone) { selectSound(); setSelected(cursor); setTimeout(() => onNext(CLASSES[cursor]), 400); }
+      if (e.key === 'Escape') { cancelSound(); onBack(); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [cursor, twDone]);
+
+  const cls = selected !== null ? CLASSES[selected] : CLASSES[cursor];
+
+  return (
+    <div className="fade-in" style={{display:'flex', gap:16}}>
+      {/* Left: list */}
+      <div style={{flex:1}}>
+        <div style={{marginBottom:12, lineHeight:2, fontSize:10, color:'#c0d8ff', minHeight:28}}>
+          {twText}<span className="blink">█</span>
         </div>
-
-        <div class="field">
-          <label class="field-label" for="bio">
-            <span class="icon">📖</span> 自己紹介・冒険の志
-          </label>
-          <textarea
-            id="bio"
-            placeholder="自身の来歴、得意なこと、冒険への想いを記せ……"
-            maxlength="300"
-            required
-          ></textarea>
+        <div className="dq-window scroll-list" style={{outline:'none', boxShadow:'none'}}>
+          {CLASSES.map((c, i) => (
+            <div
+              key={c.id}
+              className={`class-item${cursor===i?' active':''}`}
+              onClick={() => { cursorSound(); setCursor(i); selectSound(); setSelected(i); setTimeout(() => onNext(c), 400); }}
+              onMouseEnter={() => { cursorSound(); setCursor(i); }}
+            >
+              <span className="cursor-arrow">{cursor===i ? '►' : '　'}</span>
+              <span style={{marginRight:8}}>{c.icon}</span>
+              <span>{c.label}</span>
+            </div>
+          ))}
         </div>
+        <div style={{marginTop:10, display:'flex', justifyContent:'space-between'}}>
+          <button className="dq-btn" onClick={() => { cancelSound(); onBack(); }} style={{fontSize:9,padding:'8px 16px'}}>◀ もどる</button>
+          <div style={{fontSize:8, color:'#505080', display:'flex', alignItems:'center', gap:4}}>
+            <span>↑↓</span><span>カーソル</span>
+            <span style={{marginLeft:8}}>Enter</span><span>けってい</span>
+          </div>
+        </div>
+      </div>
+      {/* Right: preview */}
+      <div style={{width:160, flexShrink:0}}>
+        <DQWindow title="ステータス" style={{fontSize:9}}>
+          <div style={{textAlign:'center', marginBottom:12}}>
+            <ClassSprite cls={cls.id}/>
+          </div>
+          <div style={{textAlign:'center', fontSize:9, color:'#ffec40', marginBottom:12, letterSpacing:1}}>{cls.icon} {cls.label}</div>
+          <StatBars stats={cls.stats}/>
+        </DQWindow>
+      </div>
+    </div>
+  );
+}
 
-        <div class="btn-wrap">
-          <button type="submit" class="btn-register">
-            ギルドに登録する
+// ─── Step 3: Profile ──────────────────────────────────────────────
+function StepProfile({ name, cls, onNext, onBack }) {
+  const [profile, setProfile] = useState('');
+  const prompt = `${name}のじこしょうかいを\nかいてください`;
+  const [twText] = useTypewriter(prompt, 50);
+  return (
+    <div className="fade-in">
+      <div style={{marginBottom:14, lineHeight:2.2, fontSize:10, color:'#c0d8ff', whiteSpace:'pre-line', minHeight:48}}>
+        {twText}
+      </div>
+      <div style={{marginBottom:20}}>
+        <textarea
+          className="dq-textarea"
+          rows={5}
+          maxLength={200}
+          value={profile}
+          onChange={e => setProfile(e.target.value)}
+          placeholder="じこしょうかいをどうぞ（さいだい200文字）"
+          spellCheck={false}
+        />
+        <div style={{textAlign:'right', fontSize:8, color:'#6070c0', marginTop:4}}>{profile.length}/200</div>
+      </div>
+      <div style={{display:'flex', justifyContent:'space-between'}}>
+        <button className="dq-btn" onClick={() => { cancelSound(); onBack(); }} style={{fontSize:9,padding:'8px 16px'}}>◀ もどる</button>
+        <div style={{display:'flex',gap:10}}>
+          <button className="dq-btn" onClick={() => { selectSound(); onNext(''); }} style={{fontSize:9,padding:'8px 16px', color:'#a0a0c0'}}>
+            スキップ
           </button>
+          <button
+            className="dq-btn"
+            disabled={!profile.trim()}
+            onClick={() => { selectSound(); onNext(profile.trim()); }}
+          >▶ けってい</button>
         </div>
-
-      </form>
-    </div>
-
-    <div class="result-card" id="resultCard">
-      <div class="fanfare">🎉</div>
-      <div class="result-header">✦ 登録完了 — REGISTERED ✦</div>
-      <div class="result-row">
-        <span class="result-key">NAME</span>
-        <span class="result-val" id="r-name"></span>
-      </div>
-      <div class="result-row">
-        <span class="result-key">CLASS</span>
-        <span class="result-val" id="r-job"></span>
-      </div>
-      <div class="result-row">
-        <span class="result-key">PROFILE</span>
-        <span class="result-val" id="r-bio"></span>
       </div>
     </div>
+  );
+}
 
-  </div>
-
-  <script>
-    document.getElementById('guildForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-
-      const name = document.getElementById('name').value.trim();
-      const job  = document.getElementById('job').value;
-      const bio  = document.getElementById('bio').value.trim();
-
-      if (!name || !job || !bio) {
-        alert('すべての項目を入力してください、冒険者よ。');
-        return;
+// ─── Step 4: Confirm ─────────────────────────────────────────────
+function StepConfirm({ name, cls, profile, onConfirm, onBack }) {
+  const [cursor, setCursor] = useState(0);
+  const [twText, twDone] = useTypewriter('この内容でよろしいですか？', 50);
+  useEffect(() => {
+    const handler = e => {
+      if (e.key==='ArrowLeft'||e.key==='ArrowRight') { cursorSound(); setCursor(c=>c===0?1:0); }
+      if (e.key==='Enter') {
+        if (cursor===0) { selectSound(); onConfirm(); }
+        else { cancelSound(); onBack(); }
       }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [cursor]);
+  return (
+    <div className="fade-in">
+      <div style={{marginBottom:16, fontSize:11, color:'#c0d8ff', lineHeight:2}}>
+        {twText}<span className="blink">█</span>
+      </div>
+      <div className="guild-card" style={{marginBottom:20}}>
+        <div style={{display:'flex', gap:16, alignItems:'flex-start'}}>
+          <ClassSprite cls={cls.id}/>
+          <div style={{flex:1}}>
+            <div style={{fontSize:14, color:'#ffec40', marginBottom:8, letterSpacing:2}}>{name}</div>
+            <div style={{fontSize:10, color:'#c0d8ff', marginBottom:12}}>{cls.icon} {cls.label}</div>
+            {profile && <div style={{fontSize:8, color:'#9090c0', lineHeight:1.8, wordBreak:'break-all'}}>{profile}</div>}
+          </div>
+        </div>
+      </div>
+      <div style={{display:'flex', gap:16, justifyContent:'center'}}>
+        {['はい','いいえ'].map((lbl,i) => (
+          <button
+            key={lbl}
+            className="dq-btn"
+            style={{
+              minWidth:100,
+              color: cursor===i ? '#ffec40' : '#fff',
+              borderColor: cursor===i ? '#ffec40' : '#c8c8c8',
+              background: cursor===i ? '#002080' : '#000060',
+            }}
+            onMouseEnter={() => { cursorSound(); setCursor(i); }}
+            onClick={() => { if(i===0){selectSound();onConfirm();}else{cancelSound();onBack();} }}
+          >
+            {cursor===i?'►':''}{lbl}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
 
-      document.getElementById('r-name').textContent = name;
-      document.getElementById('r-job').textContent  = job;
-      document.getElementById('r-bio').textContent  = bio;
+// ─── Step 5: Complete ─────────────────────────────────────────────
+function StepComplete({ name, cls, profile }) {
+  const [flash, setFlash] = useState(true);
+  const [show, setShow] = useState(false);
+  const [particles, setParticles] = useState([]);
+  const msg = `${name}はギルドに\n登録されました！`;
+  const [twText] = useTypewriter(msg, 60, show);
 
-      const card = document.getElementById('resultCard');
-      card.classList.add('show');
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
-  </script>
+  useEffect(() => {
+    fanfareSound();
+    setTimeout(() => setFlash(false), 600);
+    setTimeout(() => setShow(true), 700);
+    // Spawn particles
+    const ps = Array.from({length:12}, (_,i) => ({
+      id:i, left: 10+Math.random()*80+'%',
+      top: 20+Math.random()*60+'%',
+      delay: Math.random()*800,
+      icon: ['✨','⭐','💫','🌟'][i%4],
+    }));
+    setParticles(ps);
+  }, []);
 
+  // rank based on (arbitrary)
+  const rankMap = {warrior:'C',mage:'C',priest:'C',thief:'D',merchant:'E',martial:'C',bard:'D',sage:'B',other:'E'};
+  const rank = rankMap[cls.id]||'E';
+
+  return (
+    <div className="fade-in" style={{position:'relative'}}>
+      {flash && <div className="level-up-flash"/>}
+      {particles.map(p => (
+        <div key={p.id} className="particle" style={{
+          left:p.left, top:p.top,
+          animationDelay: p.delay+'ms',
+        }}>{p.icon}</div>
+      ))}
+      <div style={{textAlign:'center', marginBottom:16, fontSize:11, color:'#ffec40', lineHeight:2, whiteSpace:'pre-line', minHeight:52}}>
+        {twText}
+      </div>
+      {show && (
+        <div className="guild-card fade-in">
+          <div style={{textAlign:'center', fontSize:8, color:'#ffd700', letterSpacing:3, marginBottom:14}}>
+            ── 冒険者ギルド カード ──
+          </div>
+          <div style={{display:'flex', gap:16, alignItems:'flex-start', marginBottom:16}}>
+            <ClassSprite cls={cls.id}/>
+            <div style={{flex:1}}>
+              <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:6}}>
+                <span style={{fontSize:16, color:'#ffec40', letterSpacing:2}}>{name}</span>
+                <span style={{fontSize:8, color:'#a0c0ff'}}>Lv.1</span>
+              </div>
+              <div style={{fontSize:10, color:'#c0d8ff', marginBottom:8}}>{cls.icon} {cls.label}</div>
+              <div style={{display:'flex', gap:8, marginBottom:10}}>
+                <div style={{fontSize:8, color:'#a0c0ff'}}>ランク:</div>
+                <div style={{fontSize:14, color:'#ffd700', fontWeight:'bold'}}>{rank}</div>
+              </div>
+              {profile && (
+                <div style={{fontSize:7, color:'#8090b0', lineHeight:1.8, wordBreak:'break-all',
+                  borderTop:'1px solid #2a2a80', paddingTop:8}}>{profile}</div>
+              )}
+            </div>
+          </div>
+          <div style={{borderTop:'1px solid #2a2a80', paddingTop:12}}>
+            <StatBars stats={cls.stats}/>
+          </div>
+          <div style={{marginTop:12, textAlign:'right'}}>
+            <div style={{fontSize:7, color:'#505090'}}>登録日: {new Date().toLocaleDateString('ja-JP')}</div>
+            <div style={{fontSize:7, color:'#505090', marginTop:2}}>ID: #{Math.floor(Math.random()*90000+10000)}</div>
+          </div>
+        </div>
+      )}
+      {show && (
+        <div style={{textAlign:'center', marginTop:16}} className="fade-in">
+          <button
+            className="dq-btn"
+            onClick={() => { selectSound(); location.reload(); }}
+            style={{color:'#ffec40', borderColor:'#ffec40'}}
+          >▶ もどる</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────
+function App() {
+  const [step, setStep] = useState(0);
+  const [name, setName] = useState('');
+  const [cls, setCls] = useState(null);
+  const [profile, setProfile] = useState('');
+
+  // Persist step
+  useEffect(() => {
+    const saved = localStorage.getItem('dq-guild-step');
+    // don't restore complete state on reload - just start fresh
+  }, []);
+
+  const STEPS = ['なまえ','しょくぎょう','じこしょうかい','かくにん','かんりょう'];
+
+  return (
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '20px',
+      position: 'relative',
+      zIndex: 1,
+    }}>
+      {/* Title */}
+      <div style={{textAlign:'center', marginBottom:20}}>
+        <div style={{
+          fontSize: 10,
+          color: '#4040c0',
+          letterSpacing: 4,
+          marginBottom: 6,
+          textShadow: 'none',
+        }}>⚔️ ⚔️ ⚔️</div>
+        <div style={{
+          fontSize: 16,
+          color: '#ffec40',
+          letterSpacing: 4,
+          textShadow: '2px 2px #000, 0 0 20px rgba(255,220,0,0.4)',
+          marginBottom: 4,
+        }}>冒険者ギルド</div>
+        <div style={{fontSize:9, color:'#8080c0', letterSpacing:3}}>REGISTRATION DESK</div>
+      </div>
+
+      {/* Progress */}
+      <div className="progress-dots" style={{marginBottom:16}}>
+        {STEPS.map((s,i) => (
+          <div key={i} title={s} className={`dot${i===step?' active':i<step?' done':''}`}/>
+        ))}
+      </div>
+
+      {/* Main window */}
+      <div style={{width:'100%', maxWidth:600}}>
+        <DQWindow title={`◆ ${STEPS[step]} ◆`}>
+          {step===0 && <StepName onNext={n => { setName(n); setStep(1); }}/>}
+          {step===1 && <StepClass name={name} onNext={c => { setCls(c); setStep(2); }} onBack={() => setStep(0)}/>}
+          {step===2 && <StepProfile name={name} cls={cls} onNext={p => { setProfile(p); setStep(3); }} onBack={() => setStep(1)}/>}
+          {step===3 && <StepConfirm name={name} cls={cls} profile={profile} onConfirm={() => setStep(4)} onBack={() => setStep(2)}/>}
+          {step===4 && <StepComplete name={name} cls={cls} profile={profile}/>}
+        </DQWindow>
+      </div>
+
+      {/* Footer */}
+      <div style={{marginTop:14, fontSize:7, color:'#2a2a60', textAlign:'center', letterSpacing:2}}>
+        ADVENTURER'S GUILD © {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
 </body>
 </html>
