@@ -392,6 +392,18 @@ const CLASSES = [
   { id:'other',    label:'その他',      icon:'❓',  stats:{力:50,素早:50,守備:50,魔力:50,回復:50} },
 ];
 
+// ─── History ─────────────────────────────────────────────────────
+const HISTORY_KEY = 'dq-guild-history';
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveToHistory(card) {
+  const hist = loadHistory();
+  hist.unshift(card);
+  if (hist.length > 50) hist.splice(50);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(hist));
+}
+
 // ─── Sprite (pixel art style SVG) ────────────────────────────────
 function ClassSprite({ cls }) {
   const colors = {
@@ -648,18 +660,22 @@ function StepConfirm({ name, cls, profile, onConfirm, onBack }) {
 }
 
 // ─── Step 5: Complete ─────────────────────────────────────────────
-function StepComplete({ name, cls, profile }) {
+function StepComplete({ name, cls, profile, onSaved }) {
   const [flash, setFlash] = useState(true);
   const [show, setShow] = useState(false);
   const [particles, setParticles] = useState([]);
   const msg = `${name}はギルドに\n登録されました！`;
   const [twText] = useTypewriter(msg, 60, show);
 
+  const rankMap = {warrior:'C',mage:'C',priest:'C',thief:'D',merchant:'E',martial:'C',bard:'D',sage:'B',other:'E'};
+  const rank = rankMap[cls.id]||'E';
+  const [cardId] = useState(() => Math.floor(Math.random()*90000+10000));
+  const [cardDate] = useState(() => new Date().toLocaleDateString('ja-JP'));
+
   useEffect(() => {
     fanfareSound();
     setTimeout(() => setFlash(false), 600);
     setTimeout(() => setShow(true), 700);
-    // Spawn particles
     const ps = Array.from({length:12}, (_,i) => ({
       id:i, left: 10+Math.random()*80+'%',
       top: 20+Math.random()*60+'%',
@@ -667,11 +683,9 @@ function StepComplete({ name, cls, profile }) {
       icon: ['✨','⭐','💫','🌟'][i%4],
     }));
     setParticles(ps);
+    saveToHistory({ name, cls, profile, rank, date: cardDate, id: cardId });
+    if (onSaved) onSaved();
   }, []);
-
-  // rank based on (arbitrary)
-  const rankMap = {warrior:'C',mage:'C',priest:'C',thief:'D',merchant:'E',martial:'C',bard:'D',sage:'B',other:'E'};
-  const rank = rankMap[cls.id]||'E';
 
   return (
     <div className="fade-in" style={{position:'relative'}}>
@@ -712,8 +726,8 @@ function StepComplete({ name, cls, profile }) {
             <StatBars stats={cls.stats}/>
           </div>
           <div style={{marginTop:12, textAlign:'right'}}>
-            <div style={{fontSize:7, color:'#505090'}}>登録日: {new Date().toLocaleDateString('ja-JP')}</div>
-            <div style={{fontSize:7, color:'#505090', marginTop:2}}>ID: #{Math.floor(Math.random()*90000+10000)}</div>
+            <div style={{fontSize:7, color:'#505090'}}>登録日: {cardDate}</div>
+            <div style={{fontSize:7, color:'#505090', marginTop:2}}>ID: #{cardId}</div>
           </div>
         </div>
       )}
@@ -730,18 +744,77 @@ function StepComplete({ name, cls, profile }) {
   );
 }
 
+// ─── History View ─────────────────────────────────────────────────
+function StepHistory({ onBack }) {
+  const [cards, setCards] = useState(loadHistory);
+  const [confirmClear, setConfirmClear] = useState(false);
+  const [twText] = useTypewriter('かこのぼうけんしゃきろく', 50);
+
+  function clearHistory() {
+    localStorage.removeItem(HISTORY_KEY);
+    setCards([]);
+    setConfirmClear(false);
+  }
+
+  return (
+    <div className="fade-in">
+      <div style={{marginBottom:14, fontSize:10, color:'#c0d8ff', lineHeight:2}}>
+        {twText}<span className="blink">█</span>
+      </div>
+      {cards.length === 0 ? (
+        <div style={{textAlign:'center', color:'#505090', fontSize:9, padding:'30px 0', lineHeight:2.5}}>
+          まだきろくがありません
+        </div>
+      ) : (
+        <div className="scroll-list" style={{maxHeight:340}}>
+          {cards.map((card, i) => (
+            <div key={i} className="guild-card" style={{marginBottom:10, padding:14}}>
+              <div style={{display:'flex', gap:12, alignItems:'flex-start'}}>
+                <ClassSprite cls={card.cls.id}/>
+                <div style={{flex:1, minWidth:0}}>
+                  <div style={{display:'flex', justifyContent:'space-between', alignItems:'baseline', marginBottom:4}}>
+                    <span style={{fontSize:12, color:'#ffec40', letterSpacing:1}}>{card.name}</span>
+                    <span style={{fontSize:11, color:'#ffd700'}}>{card.rank}ランク</span>
+                  </div>
+                  <div style={{fontSize:9, color:'#c0d8ff', marginBottom:4}}>{card.cls.icon} {card.cls.label}</div>
+                  {card.profile && (
+                    <div style={{fontSize:7, color:'#8090b0', lineHeight:1.8, wordBreak:'break-all', marginBottom:4}}>{card.profile}</div>
+                  )}
+                  <div style={{fontSize:7, color:'#404070'}}>
+                    {card.date} / ID: #{card.id}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginTop:12}}>
+        <button className="dq-btn" onClick={() => { cancelSound(); onBack(); }} style={{fontSize:9, padding:'8px 16px'}}>◀ もどる</button>
+        {cards.length > 0 && (
+          confirmClear ? (
+            <div style={{display:'flex', gap:8, alignItems:'center'}}>
+              <span style={{fontSize:8, color:'#ff8080'}}>きろくをけす？</span>
+              <button className="dq-btn" onClick={clearHistory} style={{fontSize:8, padding:'6px 12px', color:'#ff8080', borderColor:'#ff8080'}}>はい</button>
+              <button className="dq-btn" onClick={() => { cancelSound(); setConfirmClear(false); }} style={{fontSize:8, padding:'6px 12px'}}>いいえ</button>
+            </div>
+          ) : (
+            <button className="dq-btn" onClick={() => setConfirmClear(true)} style={{fontSize:8, padding:'8px 12px', color:'#606070', borderColor:'#404050'}}>きろくをけす</button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Main App ─────────────────────────────────────────────────────
 function App() {
   const [step, setStep] = useState(0);
   const [name, setName] = useState('');
   const [cls, setCls] = useState(null);
   const [profile, setProfile] = useState('');
-
-  // Persist step
-  useEffect(() => {
-    const saved = localStorage.getItem('dq-guild-step');
-    // don't restore complete state on reload - just start fresh
-  }, []);
+  const [showHistory, setShowHistory] = useState(false);
+  const [historyCount, setHistoryCount] = useState(() => loadHistory().length);
 
   const STEPS = ['なまえ','しょくぎょう','じこしょうかい','かくにん','かんりょう'];
 
@@ -774,24 +847,41 @@ function App() {
           marginBottom: 4,
         }}>冒険者ギルド</div>
         <div style={{fontSize:9, color:'#8080c0', letterSpacing:3}}>REGISTRATION DESK</div>
+        {historyCount > 0 && !showHistory && (
+          <div style={{marginTop:10}}>
+            <button
+              className="dq-btn"
+              onClick={() => { cursorSound(); setShowHistory(true); }}
+              style={{fontSize:8, padding:'6px 14px', color:'#a0c0ff', borderColor:'#4040a0'}}
+            >📜 きろく ({historyCount}件)</button>
+          </div>
+        )}
       </div>
 
       {/* Progress */}
-      <div className="progress-dots" style={{marginBottom:16}}>
-        {STEPS.map((s,i) => (
-          <div key={i} title={s} className={`dot${i===step?' active':i<step?' done':''}`}/>
-        ))}
-      </div>
+      {!showHistory && (
+        <div className="progress-dots" style={{marginBottom:16}}>
+          {STEPS.map((s,i) => (
+            <div key={i} title={s} className={`dot${i===step?' active':i<step?' done':''}`}/>
+          ))}
+        </div>
+      )}
 
       {/* Main window */}
       <div style={{width:'100%', maxWidth:600}}>
-        <DQWindow title={`◆ ${STEPS[step]} ◆`}>
-          {step===0 && <StepName onNext={n => { setName(n); setStep(1); }}/>}
-          {step===1 && <StepClass name={name} onNext={c => { setCls(c); setStep(2); }} onBack={() => setStep(0)}/>}
-          {step===2 && <StepProfile name={name} cls={cls} onNext={p => { setProfile(p); setStep(3); }} onBack={() => setStep(1)}/>}
-          {step===3 && <StepConfirm name={name} cls={cls} profile={profile} onConfirm={() => setStep(4)} onBack={() => setStep(2)}/>}
-          {step===4 && <StepComplete name={name} cls={cls} profile={profile}/>}
-        </DQWindow>
+        {showHistory ? (
+          <DQWindow title="◆ きろく ◆">
+            <StepHistory onBack={() => { setHistoryCount(loadHistory().length); setShowHistory(false); }}/>
+          </DQWindow>
+        ) : (
+          <DQWindow title={`◆ ${STEPS[step]} ◆`}>
+            {step===0 && <StepName onNext={n => { setName(n); setStep(1); }}/>}
+            {step===1 && <StepClass name={name} onNext={c => { setCls(c); setStep(2); }} onBack={() => setStep(0)}/>}
+            {step===2 && <StepProfile name={name} cls={cls} onNext={p => { setProfile(p); setStep(3); }} onBack={() => setStep(1)}/>}
+            {step===3 && <StepConfirm name={name} cls={cls} profile={profile} onConfirm={() => setStep(4)} onBack={() => setStep(2)}/>}
+            {step===4 && <StepComplete name={name} cls={cls} profile={profile} onSaved={() => setHistoryCount(loadHistory().length)}/>}
+          </DQWindow>
+        )}
       </div>
 
       {/* Footer */}
