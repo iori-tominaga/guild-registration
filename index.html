@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>冒険者ギルド 登録所</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Noto+Serif+JP:wght@400;700&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background-color: #0d0d1a;
+      background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(60, 20, 80, 0.4) 0%, transparent 60%),
+        radial-gradient(ellipse at 80% 20%, rgba(20, 40, 80, 0.4) 0%, transparent 60%),
+        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 16px;
+      font-family: 'Noto Serif JP', serif;
+    }
+
+    /* Stars */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 35%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 55% 60%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 25%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 92% 80%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 75%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 88%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 33% 55%, rgba(255,255,255,0.6) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 640px;
+    }
+
+    /* Guild emblem at top */
+    .emblem {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .emblem-icon {
+      font-size: 56px;
+      line-height: 1;
+      filter: drop-shadow(0 0 16px rgba(212,175,55,0.8));
+      animation: glow-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes glow-pulse {
+      0%, 100% { filter: drop-shadow(0 0 16px rgba(212,175,55,0.8)); }
+      50%       { filter: drop-shadow(0 0 28px rgba(212,175,55,1)); }
+    }
+
+    .guild-label {
+      font-family: 'Cinzel', serif;
+      color: #d4af37;
+      font-size: 11px;
+      letter-spacing: 6px;
+      text-transform: uppercase;
+      margin-top: 8px;
+      opacity: 0.7;
+    }
+
+    /* Parchment card */
+    .card {
+      background: linear-gradient(160deg, #2a1f0e 0%, #1c1408 60%, #221a0a 100%);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 4px;
+      padding: 40px 40px 36px;
+      box-shadow:
+        0 0 0 1px rgba(212,175,55,0.1),
+        0 0 40px rgba(0,0,0,0.8),
+        inset 0 0 60px rgba(212,175,55,0.03);
+      position: relative;
+    }
+
+    /* Corner ornaments */
+    .card::before, .card::after {
+      content: '✦';
+      position: absolute;
+      color: rgba(212,175,55,0.4);
+      font-size: 18px;
+    }
+    .card::before { top: 10px; left: 14px; }
+    .card::after  { bottom: 10px; right: 14px; }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      color: #d4af37;
+      font-size: 22px;
+      text-align: center;
+      letter-spacing: 3px;
+      margin-bottom: 6px;
+      text-shadow: 0 0 20px rgba(212,175,55,0.5);
+    }
+
+    .card-subtitle {
+      text-align: center;
+      color: rgba(212,175,55,0.5);
+      font-size: 12px;
+      letter-spacing: 2px;
+      margin-bottom: 32px;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 0 32px;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, transparent, rgba(212,175,55,0.4), transparent);
+    }
+    .divider-icon {
+      color: rgba(212,175,55,0.6);
+      font-size: 14px;
+    }
+
+    /* Form fields */
+    .field {
+      margin-bottom: 24px;
+    }
+
+    .field-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #d4af37;
+      font-size: 12px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+      font-family: 'Cinzel', serif;
+    }
+
+    .field-label .icon {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    input[type="text"],
+    select,
+    textarea {
+      width: 100%;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid rgba(212,175,55,0.25);
+      border-radius: 2px;
+      color: #e8d9a0;
+      font-family: 'Noto Serif JP', serif;
+      font-size: 15px;
+      padding: 10px 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+
+    input[type="text"]:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(212,175,55,0.7);
+      box-shadow: 0 0 12px rgba(212,175,55,0.15), inset 0 0 8px rgba(212,175,55,0.04);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: rgba(212,175,55,0.25);
+      font-size: 14px;
+    }
+
+    select {
+      cursor: pointer;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23d4af37' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 36px;
+    }
+
+    select option {
+      background: #1c1408;
+      color: #e8d9a0;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 110px;
+      line-height: 1.7;
+    }
+
+    /* Submit button */
+    .btn-wrap {
+      margin-top: 32px;
+      text-align: center;
+    }
+
+    .btn-register {
+      background: linear-gradient(135deg, #7a5c00 0%, #d4af37 50%, #7a5c00 100%);
+      background-size: 200% 200%;
+      color: #0d0d1a;
+      font-family: 'Cinzel', serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      border: none;
+      border-radius: 2px;
+      padding: 14px 48px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background-position 0.4s, box-shadow 0.3s, transform 0.1s;
+      box-shadow: 0 0 20px rgba(212,175,55,0.3);
+    }
+
+    .btn-register:hover {
+      background-position: right center;
+      box-shadow: 0 0 32px rgba(212,175,55,0.6);
+    }
+
+    .btn-register:active {
+      transform: scale(0.97);
+    }
+
+    /* Result card */
+    .result-card {
+      display: none;
+      background: linear-gradient(160deg, #0a1a0a 0%, #081208 100%);
+      border: 1px solid rgba(80,200,120,0.3);
+      border-radius: 4px;
+      padding: 32px;
+      margin-top: 24px;
+      box-shadow: 0 0 30px rgba(80,200,120,0.1);
+      position: relative;
+      animation: fade-in 0.6s ease;
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .result-card.show { display: block; }
+
+    .result-header {
+      font-family: 'Cinzel', serif;
+      color: #50c878;
+      font-size: 13px;
+      letter-spacing: 4px;
+      text-align: center;
+      margin-bottom: 20px;
+      text-shadow: 0 0 14px rgba(80,200,120,0.6);
+    }
+
+    .result-row {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(80,200,120,0.1);
+      font-size: 14px;
+    }
+    .result-row:last-child { border-bottom: none; }
+
+    .result-key {
+      color: rgba(80,200,120,0.7);
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      min-width: 90px;
+      padding-top: 2px;
+    }
+
+    .result-val {
+      color: #c8f0d8;
+      line-height: 1.7;
+      word-break: break-word;
+    }
+
+    .fanfare {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 12px;
+      animation: bounce 0.6s ease;
+    }
+
+    @keyframes bounce {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.15); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <div class="emblem">
+      <div class="emblem-icon">⚔️</div>
+      <div class="guild-label">Adventurer's Guild</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">冒険者ギルド 登録所</div>
+      <div class="card-subtitle">— REGISTRATION DESK —</div>
+
+      <div class="divider"><span class="divider-icon">◆</span></div>
+
+      <form id="guildForm" novalidate>
+
+        <div class="field">
+          <label class="field-label" for="name">
+            <span class="icon">📜</span> 冒険者の名
+          </label>
+          <input
+            type="text"
+            id="name"
+            placeholder="例: アリア・シルバーウィンド"
+            maxlength="40"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="job">
+            <span class="icon">⚔️</span> 職業・クラス
+          </label>
+          <select id="job" required>
+            <option value="" disabled selected>── 職業を選べ ──</option>
+            <option value="戦士">⚔️  戦士 (Warrior)</option>
+            <option value="魔法使い">🔮  魔法使い (Mage)</option>
+            <option value="弓使い">🏹  弓使い (Archer)</option>
+            <option value="盗賊">🗡️  盗賊 (Rogue)</option>
+            <option value="僧侶">✨  僧侶 (Cleric)</option>
+            <option value="吟遊詩人">🎸  吟遊詩人 (Bard)</option>
+            <option value="賢者">📚  賢者 (Sage)</option>
+            <option value="錬金術師">⚗️  錬金術師 (Alchemist)</option>
+            <option value="その他">🌟  その他</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="bio">
+            <span class="icon">📖</span> 自己紹介・冒険の志
+          </label>
+          <textarea
+            id="bio"
+            placeholder="自身の来歴、得意なこと、冒険への想いを記せ……"
+            maxlength="300"
+            required
+          ></textarea>
+        </div>
+
+        <div class="btn-wrap">
+          <button type="submit" class="btn-register">
+            ギルドに登録する
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <div class="result-card" id="resultCard">
+      <div class="fanfare">🎉</div>
+      <div class="result-header">✦ 登録完了 — REGISTERED ✦</div>
+      <div class="result-row">
+        <span class="result-key">NAME</span>
+        <span class="result-val" id="r-name"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-key">CLASS</span>
+        <span class="result-val" id="r-job"></span>
+      </div>
+      <div class="result-row">
+        <span class="result-key">PROFILE</span>
+        <span class="result-val" id="r-bio"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    document.getElementById('guildForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim();
+      const job  = document.getElementById('job').value;
+      const bio  = document.getElementById('bio').value.trim();
+
+      if (!name || !job || !bio) {
+        alert('すべての項目を入力してください、冒険者よ。');
+        return;
+      }
+
+      document.getElementById('r-name').textContent = name;
+      document.getElementById('r-job').textContent  = job;
+      document.getElementById('r-bio').textContent  = bio;
+
+      const card = document.getElementById('resultCard');
+      card.classList.add('show');
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  </script>
+
+</body>
+</html>
