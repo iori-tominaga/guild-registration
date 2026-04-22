@@ -1,8 +1,10 @@
-# 冒険者ギルド登録アプリ — Claude 編集ガイド
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## プロジェクト概要
 
-ドラゴンクエスト風UIの冒険者ギルド登録ウェブアプリ。GitHub Pages で公開されている静的HTMLアプリ。
+ドラゴンクエスト風UIの冒険者ギルドウェブアプリ。GitHub Pages で公開される静的HTMLアプリ。ビルドツール不要。
 
 **公開URL**: https://iori-tominaga.github.io/guild-registration/
 
@@ -10,11 +12,12 @@
 
 ```
 guild-registration/
-├── index.html          # アプリ本体（これ1ファイルですべて完結）
-├── CLAUDE.md           # このファイル
+├── index.html   # 登録ページ（Quest 01）
+├── board.html   # ギルド本部ハブ（Quest 02）
+├── CLAUDE.md
 └── docs/
-    ├── requirements.md     # 要件定義書
-    └── external-spec.md    # 外部仕様書（テスト仕様）
+    ├── requirements.md
+    └── external-spec.md
 ```
 
 ## 技術スタック
@@ -22,81 +25,101 @@ guild-registration/
 | 項目 | 内容 |
 |------|------|
 | 言語 | HTML / CSS / JavaScript (JSX) |
-| フレームワーク | React 18.3.1（CDN経由） |
+| フレームワーク | React 18.3.1（CDN経由、UMD） |
 | JSXトランスパイル | Babel Standalone 7.29.0（CDN） |
 | フォント | Press Start 2P（Google Fonts） |
 | ホスティング | GitHub Pages（master ブランチ root） |
+| デプロイ | `.github/workflows/deploy.yml`（master push で自動） |
 
-> **重要**: ビルドツール・node_modules・package.json は一切不要。`index.html` を直接編集するだけで動く。
+## 世界観・UI ルール
 
-## 編集方法
+このアプリは**ドラゴンクエスト（DQ）風RPG**の世界観で統一する。
 
-**唯一の編集対象: `index.html`**
+- すべてのUIテキストは**ひらがな・カタカナ優先**（DQの雰囲気）
+- ウィンドウ枠は `.dq-window` クラスで統一（二重ボーダー＋影）
+- ボタンは `.dq-btn` クラスで統一
+- メッセージは `useTypewriter` フックで1文字ずつ表示する演出を使う
+- サウンドは Web Audio API の8bitビープ音（`beep()` 関数）
+- ピクセルアートキャラクターは `<ClassSprite cls={id}/>` で表示（48×64px SVG）
 
-ファイルは3つのセクションで構成されている：
+## カラーテーマ
 
-1. **`<head>` 内 `<style>` タグ** (12〜323行目) — CSSスタイル定義
-2. **`<script type="text/babel">` タグ** (329〜806行目) — React コンポーネント（JSX）
+| 役割 | 値 |
+|------|----|
+| 背景（最暗） | `#000810` |
+| ウィンドウ背景 | `#000060` |
+| ウィンドウ内背景 | `#000030` |
+| メインイエロー（タイトル・選択中） | `#ffec40` |
+| ゴールド（カード枠・ランク） | `#ffd700` |
+| テキスト薄青 | `#c0d8ff` |
+| テキスト青紫 | `#a0c0ff` |
+| ボーダーグレー | `#c8c8c8` |
+| HPバー緑 | `#40ff40` |
+| エラー赤 | `#ff8080` |
 
-### コンポーネント構成
+## localStorage 保存形式
 
+### キャラクター情報（最新の登録）
 ```
-App (メイン)
-├── StepName       — Step 1: 名前入力
-├── StepClass      — Step 2: 職業選択（9種類）
-├── StepProfile    — Step 3: 自己紹介入力
-├── StepConfirm    — Step 4: 確認画面
-└── StepComplete   — Step 5: 登録完了・冒険者カード表示
-
-補助コンポーネント:
-├── DQWindow       — ドラクエ風ウィンドウ枠
-├── ClassSprite    — ピクセルアートキャラクター（SVG）
-└── StatBars       — ステータスバー表示
-
-フック:
-└── useTypewriter  — タイプライター演出フック
-
-定数:
-└── CLASSES        — 職業データ配列（9種）
-```
-
-### 主要な定数・データ
-
-**職業リスト** (`CLASSES` 配列, 383〜393行目):
-```js
-{ id, label, icon, stats: {力, 素早, 守備, 魔力, 回復} }
+キー: 'dq-character'
+型:   { name, cls: { id, label, icon, stats }, profile, rank, date, id }
 ```
 
-**ランクマップ** (`StepComplete` 内, 673行目):
-```js
-const rankMap = {warrior:'C', mage:'C', priest:'C', ...}
+`cls.stats` は `{ 力, 素早, 守備, 魔力, 回復 }` の数値オブジェクト（0〜100）。
+
+board.html では `HP = stats.守備 * 2`、`MP = stats.魔力 * 2`、`ATK = stats.力`、`DEF = stats.守備`、`SPD = stats.素早` のように派生させて表示する。
+
+### 登録履歴
+```
+キー: 'dq-guild-history'
+型:   Array<{ name, cls, profile, rank, date, id }>  ※最大50件、新しい順
 ```
 
-## デプロイ方法
-
-`master` ブランチに push すると GitHub Actions が自動的に GitHub Pages へデプロイする。
-
+### 個人クエストログ（board.html）
 ```
-変更 → commit → push origin master → 自動デプロイ → 公開URL反映（約1〜2分）
+キー: 'dq-quest-log'
+型:   Array<{ id, text, done, createdAt }>
 ```
 
-## よくある変更例
+## ページ間の遷移フロー
+
+```
+index.html（登録）
+  └── 登録完了後 → board.html（ギルド本部）
+        └── 今後のクエストで追加されるページへのリンクを並べる
+```
+
+## コンポーネント・関数の共有パターン
+
+各HTMLファイルは独立した `<script type="text/babel">` を持つ。共通のUI部品（`DQWindow`、`ClassSprite`、`StatBars`、`beep`系、`useTypewriter`）は**各ファイルにコピーして使う**（ビルドなしの制約）。
+
+共通部品を変更したら、すべてのHTMLに反映すること。
+
+## よくある変更パターン
 
 ### 職業を追加する
-`CLASSES` 配列（383行目付近）に新しいオブジェクトを追加し、`ClassSprite` の `colors` オブジェクトと `rankMap` にも対応エントリを追加する。
+`index.html` の `CLASSES` 配列に `{ id, label, icon, stats }` を追加し、`ClassSprite` の `colors` と `rankMap` にも同じ `id` でエントリを追加する。
 
-### テキスト・メッセージを変更する
-各 `Step*` コンポーネント内の `useTypewriter(...)` の引数文字列を変更する。
+### 新しいページ（クエスト）を追加する
+1. `board.html` の「冒険の場所」セクションにリンクカードを追加する
+2. 新しい HTML ファイルを root に作成する
+
+### テキストを変更する
+`useTypewriter('...', speed)` の第1引数を変更する。
 
 ### 色・スタイルを変更する
-`<style>` タグ内のCSS変数・セレクタを直接編集する。メインカラーは `#ffec40`（黄）、`#000060`（濃紺）、`#c0d8ff`（薄青）。
+`<style>` タグ内を直接編集する。CSSクラスを追加する場合は既存のDQスタイルに合わせること。
 
-### ランクロジックを変更する
-`StepComplete` コンポーネント内の `rankMap` オブジェクト（673行目付近）を編集する。
+## デプロイ
 
-## モバイル対応メモ
+`master` ブランチに push すると GitHub Actions が自動デプロイ（約1〜2分）。
 
-- `@media (max-width: 520px)` で font-size 16px（iOS自動ズーム防止）
-- `min-height: 44px` でタッチターゲット確保
+```
+変更 → commit → push origin master → 自動デプロイ → 公開URL反映
+```
+
+## モバイル対応
+
+- `@media (max-width: 520px)` で input/textarea の font-size を 16px にする（iOS自動ズーム防止）
+- ボタンは `min-height: 44px`（タッチターゲット確保）
 - `env(safe-area-inset-top)` でノッチ対応
-- 職業選択のステータスパネルはスマホでは非表示（`.class-step-sidebar`）

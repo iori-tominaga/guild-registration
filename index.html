@@ -683,7 +683,9 @@ function StepComplete({ name, cls, profile, onSaved }) {
       icon: ['✨','⭐','💫','🌟'][i%4],
     }));
     setParticles(ps);
-    saveToHistory({ name, cls, profile, rank, date: cardDate, id: cardId });
+    const card = { name, cls, profile, rank, date: cardDate, id: cardId };
+    saveToHistory(card);
+    localStorage.setItem('dq-character', JSON.stringify(card));
     if (onSaved) onSaved();
   }, []);
 
@@ -732,12 +734,17 @@ function StepComplete({ name, cls, profile, onSaved }) {
         </div>
       )}
       {show && (
-        <div style={{textAlign:'center', marginTop:16}} className="fade-in">
+        <div style={{textAlign:'center', marginTop:16, display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap'}} className="fade-in">
+          <button
+            className="dq-btn"
+            onClick={() => { selectSound(); location.href = 'board.html'; }}
+            style={{color:'#ffec40', borderColor:'#ffec40'}}
+          >▶ ギルド本部へ</button>
           <button
             className="dq-btn"
             onClick={() => { selectSound(); location.reload(); }}
-            style={{color:'#ffec40', borderColor:'#ffec40'}}
-          >▶ もどる</button>
+            style={{fontSize:9, padding:'8px 16px', color:'#a0a0c0'}}
+          >もういちど</button>
         </div>
       )}
     </div>
