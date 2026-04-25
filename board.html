@@ -232,8 +232,35 @@ function ClassSprite({ cls }) {
   );
 }
 
+// ─── Equipment Helpers ───────────────────────────────────────────
+const EQUIPMENT_BONUS_MAP = {
+  'wood-stick':   {atk:5},
+  'copper-sword': {atk:15},
+  'iron-sword':   {atk:25},
+  'flame-sword':  {atk:40,hp:10},
+  'holy-sword':   {atk:55,mp:20},
+  'wood-shield':  {def:5},
+  'iron-shield':  {def:15},
+  'magic-shield': {def:20,mp:10},
+  'cloth-armor':  {def:8,hp:10},
+  'chain-armor':  {def:20,hp:20},
+  'dragon-armor': {def:35,hp:40},
+  'power-charm':  {atk:10},
+  'sage-ring':    {mp:30,atk:5},
+  'guard-charm':  {def:10,hp:15},
+};
+function calcEquipBonus(equipped) {
+  const bonus = {hp:0,mp:0,atk:0,def:0,spd:0};
+  Object.values(equipped || {}).forEach(id => {
+    if (!id) return;
+    const b = EQUIPMENT_BONUS_MAP[id];
+    if (b) Object.entries(b).forEach(([k,v]) => { if (bonus[k] !== undefined) bonus[k] += v; });
+  });
+  return bonus;
+}
+
 // ─── Character Panel ─────────────────────────────────────────────
-function CharacterPanel({ character }) {
+function CharacterPanel({ character, equipped }) {
   const [tw] = useTypewriter('ぼうけんしゃのじょうたい', 50);
   if (!character) {
     return (
@@ -246,12 +273,13 @@ function CharacterPanel({ character }) {
     );
   }
   const s = character.cls.stats;
+  const bonus = calcEquipBonus(equipped);
   const derived = [
-    { label:'HP', value: s.守備 * 2, max: 200, color:'#40ff40' },
-    { label:'MP', value: s.魔力 * 2, max: 200, color:'#40c0ff' },
-    { label:'ATK', value: s.力,       max: 100, color:'#ff8040' },
-    { label:'DEF', value: s.守備,     max: 100, color:'#40ffff' },
-    { label:'SPD', value: s.素早,     max: 100, color:'#ffff40' },
+    { label:'HP',  base: s.守備*2, value: s.守備*2 + bonus.hp,  max:200, color:'#40ff40' },
+    { label:'MP',  base: s.魔力*2, value: s.魔力*2 + bonus.mp,  max:200, color:'#40c0ff' },
+    { label:'ATK', base: s.力,     value: s.力     + bonus.atk, max:100, color:'#ff8040' },
+    { label:'DEF', base: s.守備,   value: s.守備   + bonus.def, max:100, color:'#40ffff' },
+    { label:'SPD', base: s.素早,   value: s.素早   + bonus.spd, max:100, color:'#ffff40' },
   ];
   return (
     <DQWindow title="◆ ぼうけんしゃ ◆">
@@ -274,9 +302,10 @@ function CharacterPanel({ character }) {
             <div key={d.label} className="stat-bar">
               <span className="stat-label" style={{width:32}}>{d.label}</span>
               <div className="stat-track">
-                <div className="stat-fill" style={{width:(d.value/d.max*100)+'%',background:`linear-gradient(90deg,${d.color}88,${d.color})`}}/>
+                <div className="stat-fill" style={{width:Math.min(d.value/d.max*100,100)+'%',background:`linear-gradient(90deg,${d.color}88,${d.color})`}}/>
               </div>
-              <span style={{fontSize:8,color:'#a0c0ff',width:28,textAlign:'right'}}>{d.value}</span>
+              <span style={{fontSize:8,color: d.value>d.base ? '#40ff80' : '#a0c0ff',width:28,textAlign:'right'}}>{d.value}</span>
+              {d.value > d.base && <span style={{fontSize:7,color:'#40ff80'}}>▲{d.value-d.base}</span>}
             </div>
           ))}
         </div>
@@ -373,7 +402,7 @@ function QuestLog() {
 // ─── Adventure Locations ─────────────────────────────────────────
 function AdventureLocations() {
   const locations = [
-    { icon:'⚔️', label:'そうび　しょうてん',  desc:'武器・防具を整えよ',       href:null },
+    { icon:'⚔️', label:'そうびの　ま',        desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
     { icon:'📖', label:'モンスター　ずかん',   desc:'討伐した敵を記録する',     href:null },
     { icon:'✨', label:'まほう　としょかん',   desc:'習得した呪文を管理する',   href:null },
     { icon:'🏟️', label:'バトル　アリーナ',   desc:'強敵に挑め',               href:null },
@@ -403,10 +432,13 @@ function AdventureLocations() {
 // ─── Main App ────────────────────────────────────────────────────
 function App() {
   const [character, setCharacter] = useState(null);
+  const [equipped, setEquipped] = useState({});
   useEffect(() => {
     try {
       const raw = localStorage.getItem('dq-character');
       if (raw) setCharacter(JSON.parse(raw));
+      const eq = localStorage.getItem('dq-equipment');
+      if (eq) setEquipped(JSON.parse(eq));
     } catch(e) {}
   }, []);
 
@@ -419,7 +451,7 @@ function App() {
         <div style={{fontSize:9,color:'#8080c0',letterSpacing:3}}>GUILD HEADQUARTERS</div>
       </div>
       <div style={{width:'100%',maxWidth:600,display:'flex',flexDirection:'column',gap:20}}>
-        <div className="fade-in"><CharacterPanel character={character}/></div>
+        <div className="fade-in"><CharacterPanel character={character} equipped={equipped}/></div>
         <div className="fade-in" style={{animationDelay:'0.1s'}}><QuestLog/></div>
         <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations/></div>
         <div style={{textAlign:'center'}}>
