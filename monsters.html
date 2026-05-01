@@ -125,6 +125,11 @@
   }
   @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
   .fade-in { animation: fadeIn 0.3s ease-out both; }
+  /* Focus highlight */
+  :focus-visible { outline: 3px solid #ffec40; outline-offset: 2px; }
+  .dq-btn:focus-visible { outline: 3px solid #ffec40; outline-offset: 3px; box-shadow: 3px 3px 0 #000, 0 0 8px rgba(255,236,64,0.5); }
+  .filter-btn:focus-visible { outline: 2px solid #ffec40; outline-offset: 2px; }
+  .monster-row:focus-visible { outline: 2px solid #ffec40; outline-offset: -2px; }
   @media (max-width: 520px) {
     .dq-content { padding: 14px; }
     .dq-btn { min-height: 44px; font-size: 9px; }
