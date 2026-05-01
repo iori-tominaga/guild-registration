@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒険者ギルド モンスター図鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px #000, 6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+  }
+  .dq-window::before {
+    content: ''; position: absolute; inset: 3px;
+    border: 2px solid #4848b8; pointer-events: none;
+  }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
+  .dq-content { padding: 20px; }
+  .dq-btn {
+    background: #000060;
+    border: 3px solid #c8c8c8;
+    outline: 2px solid #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 28px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.05s;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .dq-btn:hover { background: #2020a0; color: #ffec40; border-color: #ffec40; }
+  .dq-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+  .monster-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #1a1a60;
+    transition: background 0.1s;
+    cursor: pointer;
+  }
+  .monster-row:hover { background: #0a0a40; }
+  .monster-row.defeated { opacity: 0.7; }
+  .monster-icon { font-size: 24px; width: 32px; text-align: center; flex-shrink: 0; }
+  .monster-info { flex: 1; min-width: 0; }
+  .monster-name { font-size: 10px; color: #ffec40; margin-bottom: 4px; }
+  .monster-name.unknown { color: #404070; }
+  .monster-type { font-size: 7px; color: #6060a0; margin-bottom: 6px; }
+  .monster-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat-chip {
+    font-size: 7px; color: #a0c0ff;
+    background: #00002a;
+    border: 1px solid #2a2a60;
+    padding: 2px 5px;
+  }
+  .defeated-badge {
+    font-size: 8px; color: #40ff80;
+    border: 1px solid #204040;
+    background: #002020;
+    padding: 3px 7px;
+    flex-shrink: 0;
+  }
+  .unknown-badge {
+    font-size: 8px; color: #303060;
+    border: 1px solid #202040;
+    padding: 3px 7px;
+    flex-shrink: 0;
+  }
+  .filter-btn {
+    background: #000030;
+    border: 2px solid #303080;
+    color: #6060a0;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 7px;
+    padding: 5px 8px;
+    cursor: pointer;
+    transition: all 0.1s;
+  }
+  .filter-btn.active { border-color: #ffec40; color: #ffec40; background: #001040; }
+  .lv-badge {
+    font-size: 8px;
+    color: #ffd700;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: right;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease-out both; }
+  @media (max-width: 520px) {
+    .dq-content { padding: 14px; }
+    .dq-btn { min-height: 44px; font-size: 9px; }
+    .dq-title-bar { font-size: 9px; padding: 8px 12px; }
+    .monster-row { padding: 10px; gap: 8px; }
+    .monster-stats { gap: 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect } = React;
+
+// ─── Audio ───────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+function beep(freq=440, dur=0.08, type='square', vol=0.15) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function cursorSound() { beep(800, 0.05, 'square', 0.1); }
+
+// ─── DQ Window ──────────────────────────────────────────────────
+function DQWindow({ title, children, style }) {
+  return (
+    <div className="dq-window" style={style}>
+      {title && <div className="dq-title-bar">{title}</div>}
+      <div className="dq-content">{children}</div>
+    </div>
+  );
+}
+
+// ─── Bestiary Storage ────────────────────────────────────────────
+const BESTIARY_KEY = 'dq-bestiary';
+function loadBestiary() {
+  try {
+    const raw = localStorage.getItem(BESTIARY_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch(e) {}
+  const initial = { defeatedMonsterIds: [] };
+  localStorage.setItem(BESTIARY_KEY, JSON.stringify(initial));
+  return initial;
+}
+
+// ─── Monster List ────────────────────────────────────────────────
+function MonsterList({ monsters, defeatedIds, filter }) {
+  const filtered = filter === 'all'
+    ? monsters
+    : filter === 'defeated'
+      ? monsters.filter(m => defeatedIds.includes(m.id))
+      : monsters.filter(m => m.type === filter);
+
+  if (filtered.length === 0) {
+    return (
+      <div style={{textAlign:'center', padding:'30px 0', color:'#404070', fontSize:9, lineHeight:2.5}}>
+        がいとうするモンスターがいません
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {filtered.map((m, i) => {
+        const defeated = defeatedIds.includes(m.id);
+        return (
+          <div
+            key={m.id}
+            className={`monster-row${defeated ? ' defeated' : ''}`}
+            style={{animationDelay: i * 0.03 + 's'}}
+            onClick={cursorSound}
+          >
+            <span className="monster-icon">{defeated ? m.icon : '❓'}</span>
+            <div className="monster-info">
+              <div className={`monster-name${defeated ? '' : ' unknown'}`}>
+                {defeated ? m.name : '？？？？'}
+              </div>
+              <div className="monster-type">{defeated ? m.type : '———'}</div>
+              {defeated && (
+                <div className="monster-stats">
+                  <span className="stat-chip">HP {m.hp}</span>
+                  <span className="stat-chip">ATK {m.atk}</span>
+                  <span className="stat-chip">DEF {m.def}</span>
+                  <span className="stat-chip">SPD {m.spd}</span>
+                </div>
+              )}
+              {defeated && (
+                <div style={{fontSize:7, color:'#606090', marginTop:5, lineHeight:1.8}}>{m.description}</div>
+              )}
+            </div>
+            <span className="lv-badge">Lv{m.level}</span>
+            {defeated
+              ? <span className="defeated-badge">討伐済</span>
+              : <span className="unknown-badge">みはっけん</span>
+            }
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────
+function App() {
+  const [monsters, setMonsters] = useState([]);
+  const [defeatedIds, setDefeatedIds] = useState([]);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    fetch('monsters.json')
+      .then(r => r.json())
+      .then(data => setMonsters(data))
+      .catch(() => setMonsters([]));
+    const bestiary = loadBestiary();
+    setDefeatedIds(bestiary.defeatedMonsterIds || []);
+  }, []);
+
+  const types = [...new Set(monsters.map(m => m.type))];
+  const defeatedCount = defeatedIds.filter(id => monsters.some(m => m.id === id)).length;
+
+  const filters = [
+    { key: 'all', label: 'すべて' },
+    { key: 'defeated', label: '討伐済' },
+    ...types.map(t => ({ key: t, label: t })),
+  ];
+
+  return (
+    <div style={{minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center',
+      padding:'20px 12px 40px', paddingTop:'max(20px, env(safe-area-inset-top))', position:'relative', zIndex:1}}>
+      <div style={{textAlign:'center', marginBottom:20}}>
+        <div style={{fontSize:10, color:'#4040c0', letterSpacing:4, marginBottom:6}}>📖 👹 📖</div>
+        <div style={{fontSize:14, color:'#ffec40', letterSpacing:4, textShadow:'2px 2px #000, 0 0 20px rgba(255,220,0,0.4)', marginBottom:4}}>モンスター　ずかん</div>
+        <div style={{fontSize:9, color:'#8080c0', letterSpacing:3}}>MONSTER CODEX</div>
+      </div>
+
+      <div style={{width:'100%', maxWidth:600}}>
+        <DQWindow title="◆ モンスターずかん ◆">
+          {/* 討伐進捗 */}
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:14}}>
+            <span style={{fontSize:8, color:'#a0c0ff'}}>討伐記録</span>
+            <span style={{fontSize:10, color:'#ffd700'}}>{defeatedCount} / {monsters.length}</span>
+          </div>
+
+          {/* フィルター */}
+          <div style={{display:'flex', gap:6, flexWrap:'wrap', marginBottom:14}}>
+            {filters.map(f => (
+              <button
+                key={f.key}
+                className={`filter-btn${filter === f.key ? ' active' : ''}`}
+                onClick={() => { cursorSound(); setFilter(f.key); }}
+              >{f.label}</button>
+            ))}
+          </div>
+
+          {/* モンスター一覧 */}
+          <MonsterList monsters={monsters} defeatedIds={defeatedIds} filter={filter} />
+        </DQWindow>
+
+        <div style={{textAlign:'center', marginTop:16}}>
+          <a href="board.html" style={{fontSize:8, color:'#4040a0', letterSpacing:2}}>← ギルド本部へもどる</a>
+        </div>
+      </div>
+
+      <div style={{marginTop:20, fontSize:7, color:'#2a2a60', textAlign:'center', letterSpacing:2}}>
+        ADVENTURER'S GUILD © {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

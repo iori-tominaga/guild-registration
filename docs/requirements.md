@@ -1,7 +1,7 @@
 # 要件定義書 — 冒険者ギルド登録アプリ
 
-**バージョン**: 1.3.0  
-**最終更新**: 2026-04-25  
+**バージョン**: 1.4.0  
+**最終更新**: 2026-05-01  
 **ステータス**: リリース済み（GitHub Pages）
 
 ---
@@ -43,6 +43,7 @@
 | 登録ページ | index.html | Quest 01：冒険者登録（5ステップ） |
 | ギルド本部 | board.html | Quest 02：ハブ・ステータス・クエストログ |
 | 装備の間 | equipment.html | Quest 03：装備装着・ステータス強化 |
+| モンスター図鑑 | monsters.html | Quest 04：モンスター一覧・討伐記録 |
 
 ---
 
@@ -160,6 +161,7 @@
 | `dq-guild-history` | Array | 登録履歴（最大50件、新しい順） |
 | `dq-quest-log` | Array | 個人クエストログ |
 | `dq-equipment` | Object | 装着中の装備ID（スロットをキーとする） |
+| `dq-bestiary` | Object | `{ defeatedMonsterIds: [] }`（Quest 06 バトルで更新） |
 
 ---
 
@@ -190,3 +192,4 @@
 | 1.1.0 | 2026-04-21 | ドラクエ風UIへ全面リデザイン・スマホ対応追加 |
 | 1.2.0 | 2026-04-25 | Quest 02：board.html（ギルド本部）追加。localStorage永続化、クエストログ、遷移フロー |
 | 1.3.0 | 2026-04-25 | Quest 03：equipment.html（装備の間）追加。装備システム・ステータス反映・設定ファイル整備 |
+| 1.4.0 | 2026-05-01 | Quest 04：monsters.html（モンスター図鑑）追加。CLAUDE.md分割・Memoryファイル整備 |
