@@ -307,6 +307,26 @@
   @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(4px)} }
   .scroll-indicator { animation: bounce 1s infinite; display: inline-block; }
 
+  /* Focus highlight */
+  :focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 2px;
+  }
+  .dq-btn:focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 3px;
+    box-shadow: 3px 3px 0 #000, 0 0 8px rgba(255,236,64,0.5);
+  }
+  .dq-input:focus, .dq-textarea:focus {
+    border-color: #ffec40;
+    box-shadow: inset 2px 2px 0 #000060, inset -2px -2px 0 #000060, 0 0 8px rgba(255,236,64,0.3);
+  }
+  .class-item:focus-visible {
+    outline: 2px solid #ffec40;
+    outline-offset: -2px;
+    background: #1a1a80;
+  }
+
   /* Mobile responsive */
   @media (max-width: 520px) {
     .dq-input    { font-size: 16px; }
@@ -780,9 +800,18 @@ function StepHistory({ onBack }) {
                   {card.profile && (
                     <div style={{fontSize:7, color:'#8090b0', lineHeight:1.8, wordBreak:'break-all', marginBottom:4}}>{card.profile}</div>
                   )}
-                  <div style={{fontSize:7, color:'#404070'}}>
+                  <div style={{fontSize:7, color:'#404070', marginBottom:8}}>
                     {card.date} / ID: #{card.id}
                   </div>
+                  <button
+                    className="dq-btn"
+                    onClick={() => {
+                      selectSound();
+                      localStorage.setItem('dq-character', JSON.stringify(card));
+                      location.href = 'board.html';
+                    }}
+                    style={{fontSize:8, padding:'6px 12px', color:'#ffec40', borderColor:'#806000', width:'100%'}}
+                  >▶ このキャラで　ギルド本部へ</button>
                 </div>
               </div>
             </div>

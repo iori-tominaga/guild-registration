@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒険者ギルド 本部</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 90%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 10%, #fff 0%, transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px #000, 6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+  }
+  .dq-window::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 2px solid #4848b8;
+    pointer-events: none;
+  }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
+  .dq-content { padding: 20px; }
+  .dq-btn {
+    background: #000060;
+    border: 3px solid #c8c8c8;
+    outline: 2px solid #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 28px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.05s;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .dq-btn:hover { background: #2020a0; color: #ffec40; border-color: #ffec40; }
+  .dq-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+  .dq-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .dq-input {
+    background: #000030;
+    border: 3px solid #a0a0a0;
+    outline: none;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 13px;
+    padding: 10px 12px;
+    width: 100%;
+    caret-color: #ffec40;
+    letter-spacing: 1px;
+    box-shadow: inset 2px 2px 0 #000060, inset -2px -2px 0 #000060;
+  }
+  .dq-input:focus { border-color: #ffec40; }
+  .stat-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .stat-label { font-size: 8px; color: #a0c0ff; width: 36px; flex-shrink: 0; }
+  .stat-track { flex: 1; height: 8px; background: #000030; border: 2px solid #404080; overflow: hidden; }
+  .stat-fill { height: 100%; background: linear-gradient(90deg, #20c020, #40ff40); transition: width 0.6s ease; }
+  .guild-card {
+    background: linear-gradient(135deg, #1a0050, #000060);
+    border: 4px solid #ffd700;
+    box-shadow: inset 0 0 0 2px #000, inset 0 0 20px rgba(255,200,0,0.08), 0 0 0 2px #000, 6px 6px 0 #000;
+    padding: 20px; position: relative; overflow: hidden;
+  }
+  .guild-card::before {
+    content: ''; position: absolute; inset: 6px;
+    border: 1px solid rgba(255,215,0,0.3); pointer-events: none;
+  }
+  .status-row {
+    display: flex; justify-content: space-between;
+    font-size: 8px; padding: 5px 0;
+    border-bottom: 1px dotted #2a2a80; color: #c0d8ff;
+  }
+  .scroll-list {
+    max-height: 280px; overflow-y: auto;
+    scrollbar-width: thin; scrollbar-color: #4040c0 #000030;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease-out both; }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
+  .blink { animation: blink 0.8s steps(1) infinite; }
+  .quest-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-bottom: 1px solid #1a1a60;
+    font-size: 9px; color: #c0d8ff;
+  }
+  .quest-item.done { color: #505080; text-decoration: line-through; }
+  .quest-check {
+    width: 16px; height: 16px; flex-shrink: 0;
+    border: 2px solid #4040a0; background: #000030;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 10px;
+  }
+  .quest-check.checked { border-color: #40c040; color: #40c040; }
+  .location-card {
+    border: 2px solid #303080; padding: 14px;
+    margin-bottom: 10px; background: #00002a;
+    cursor: pointer; transition: border-color 0.1s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .location-card:hover { border-color: #ffec40; }
+  .location-card.locked { opacity: 0.4; cursor: not-allowed; }
+  /* Focus highlight */
+  :focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 2px;
+  }
+  .dq-btn:focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 3px;
+    box-shadow: 3px 3px 0 #000, 0 0 8px rgba(255,236,64,0.5);
+  }
+  .dq-input:focus {
+    border-color: #ffec40;
+    box-shadow: inset 2px 2px 0 #000060, inset -2px -2px 0 #000060, 0 0 8px rgba(255,236,64,0.3);
+  }
+  .quest-check:focus-visible { outline: 2px solid #ffec40; outline-offset: 2px; }
+  .location-card:focus-visible { outline: 2px solid #ffec40; outline-offset: -2px; }
+
+  @media (max-width: 520px) {
+    .dq-input { font-size: 16px; }
+    .dq-content { padding: 14px; }
+    .dq-btn { min-height: 44px; padding: 10px 18px; font-size: 10px; }
+    .dq-title-bar { font-size: 9px; padding: 8px 12px; }
+    .scroll-list { max-height: 220px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+// ─── Audio ───────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+function beep(freq=440, dur=0.08, type='square', vol=0.15) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function cursorSound() { beep(800, 0.05, 'square', 0.1); }
+function selectSound() { beep(1200, 0.1, 'square', 0.15); beep(1500, 0.1, 'square', 0.15); }
+function cancelSound() { beep(300, 0.15, 'square', 0.12); }
+
+// ─── Typewriter ──────────────────────────────────────────────────
+function useTypewriter(text, speed=40, active=true) {
+  const [displayed, setDisplayed] = useState('');
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!active) { setDisplayed(text); setDone(true); return; }
+    setDisplayed(''); setDone(false);
+    let i = 0;
+    const tick = setInterval(() => {
+      if (i >= text.length) { clearInterval(tick); setDone(true); return; }
+      setDisplayed(text.slice(0, i+1)); i++;
+    }, speed);
+    return () => clearInterval(tick);
+  }, [text, active]);
+  return [displayed, done];
+}
+
+// ─── DQ Window ──────────────────────────────────────────────────
+function DQWindow({ title, children, style }) {
+  return (
+    <div className="dq-window" style={style}>
+      {title && <div className="dq-title-bar">{title}</div>}
+      <div className="dq-content">{children}</div>
+    </div>
+  );
+}
+
+// ─── Class Sprite ────────────────────────────────────────────────
+function ClassSprite({ cls }) {
+  const colors = {
+    warrior:['#e05050','#c03030','#f08080','#ffd700'],
+    mage:['#8050e0','#6030c0','#c090ff','#40ffff'],
+    priest:['#50e0e0','#30c0c0','#90ffff','#ffffff'],
+    thief:['#404040','#202020','#808080','#40ff40'],
+    merchant:['#e0a040','#c08020','#ffd080','#ffffff'],
+    martial:['#e08040','#c06020','#f0a060','#ff4040'],
+    bard:['#e050a0','#c03080','#f090d0','#ffff40'],
+    sage:['#4080e0','#2060c0','#80c0ff','#ffd700'],
+    other:['#808080','#606060','#a0a0a0','#ffffff'],
+  };
+  const c = colors[cls] || colors.other;
+  return (
+    <svg width="48" height="64" viewBox="0 0 12 16" style={{imageRendering:'pixelated',display:'block'}}>
+      <rect x="3" y="0" width="6" height="6" fill={c[2]}/>
+      <rect x="4" y="2" width="1" height="1" fill="#000"/>
+      <rect x="7" y="2" width="1" height="1" fill="#000"/>
+      <rect x="4" y="4" width="4" height="1" fill="#000"/>
+      <rect x="2" y="6" width="8" height="5" fill={c[0]}/>
+      <rect x="3" y="7" width="6" height="1" fill={c[3]} opacity="0.5"/>
+      <rect x="0" y="6" width="2" height="4" fill={c[1]}/>
+      <rect x="10" y="6" width="2" height="4" fill={c[1]}/>
+      <rect x="2" y="11" width="3" height="5" fill={c[1]}/>
+      <rect x="7" y="11" width="3" height="5" fill={c[1]}/>
+      <rect x="2" y="14" width="4" height="2" fill="#3a2010"/>
+      <rect x="7" y="14" width="4" height="2" fill="#3a2010"/>
+    </svg>
+  );
+}
+
+// ─── Equipment Helpers ───────────────────────────────────────────
+const EQUIPMENT_BONUS_MAP = {
+  'wood-stick':   {atk:5},
+  'copper-sword': {atk:15},
+  'iron-sword':   {atk:25},
+  'flame-sword':  {atk:40,hp:10},
+  'holy-sword':   {atk:55,mp:20},
+  'wood-shield':  {def:5},
+  'iron-shield':  {def:15},
+  'magic-shield': {def:20,mp:10},
+  'cloth-armor':  {def:8,hp:10},
+  'chain-armor':  {def:20,hp:20},
+  'dragon-armor': {def:35,hp:40},
+  'power-charm':  {atk:10},
+  'sage-ring':    {mp:30,atk:5},
+  'guard-charm':  {def:10,hp:15},
+};
+function calcEquipBonus(equipped) {
+  const bonus = {hp:0,mp:0,atk:0,def:0,spd:0};
+  Object.values(equipped || {}).forEach(id => {
+    if (!id) return;
+    const b = EQUIPMENT_BONUS_MAP[id];
+    if (b) Object.entries(b).forEach(([k,v]) => { if (bonus[k] !== undefined) bonus[k] += v; });
+  });
+  return bonus;
+}
+
+// ─── Character Panel ─────────────────────────────────────────────
+function CharacterPanel({ character, equipped }) {
+  const [tw] = useTypewriter('ぼうけんしゃのじょうたい', 50);
+  if (!character) {
+    return (
+      <DQWindow title="◆ ぼうけんしゃ ◆">
+        <div style={{textAlign:'center',padding:'20px 0',fontSize:9,color:'#505090',lineHeight:2.5}}>
+          キャラクターが みつかりません<br/>
+          <a href="index.html" style={{color:'#a0c0ff',fontSize:8}}>登録ページへ →</a>
+        </div>
+      </DQWindow>
+    );
+  }
+  const s = character.cls.stats;
+  const bonus = calcEquipBonus(equipped);
+  const derived = [
+    { label:'HP',  base: s.守備*2, value: s.守備*2 + bonus.hp,  max:200, color:'#40ff40' },
+    { label:'MP',  base: s.魔力*2, value: s.魔力*2 + bonus.mp,  max:200, color:'#40c0ff' },
+    { label:'ATK', base: s.力,     value: s.力     + bonus.atk, max:100, color:'#ff8040' },
+    { label:'DEF', base: s.守備,   value: s.守備   + bonus.def, max:100, color:'#40ffff' },
+    { label:'SPD', base: s.素早,   value: s.素早   + bonus.spd, max:100, color:'#ffff40' },
+  ];
+  return (
+    <DQWindow title="◆ ぼうけんしゃ ◆">
+      <div style={{fontSize:9,color:'#c0d8ff',marginBottom:14}}>{tw}<span className="blink">█</span></div>
+      <div className="guild-card fade-in">
+        <div style={{display:'flex',gap:16,alignItems:'flex-start',marginBottom:16}}>
+          <ClassSprite cls={character.cls.id}/>
+          <div style={{flex:1}}>
+            <div style={{fontSize:15,color:'#ffec40',letterSpacing:2,marginBottom:4}}>{character.name}</div>
+            <div style={{fontSize:9,color:'#c0d8ff',marginBottom:6}}>{character.cls.icon} {character.cls.label}</div>
+            <div style={{display:'flex',gap:12}}>
+              <span style={{fontSize:8,color:'#a0c0ff'}}>ランク</span>
+              <span style={{fontSize:13,color:'#ffd700'}}>{character.rank}</span>
+              <span style={{fontSize:8,color:'#a0c0ff',marginLeft:8}}>Lv.1</span>
+            </div>
+          </div>
+        </div>
+        <div style={{borderTop:'1px solid #2a2a80',paddingTop:12}}>
+          {derived.map(d => (
+            <div key={d.label} className="stat-bar">
+              <span className="stat-label" style={{width:32}}>{d.label}</span>
+              <div className="stat-track">
+                <div className="stat-fill" style={{width:Math.min(d.value/d.max*100,100)+'%',background:`linear-gradient(90deg,${d.color}88,${d.color})`}}/>
+              </div>
+              <span style={{fontSize:8,color: d.value>d.base ? '#40ff80' : '#a0c0ff',width:28,textAlign:'right'}}>{d.value}</span>
+              {d.value > d.base && <span style={{fontSize:7,color:'#40ff80'}}>▲{d.value-d.base}</span>}
+            </div>
+          ))}
+        </div>
+        {character.profile && (
+          <div style={{marginTop:12,fontSize:7,color:'#8090b0',lineHeight:1.8,borderTop:'1px solid #2a2a80',paddingTop:10,wordBreak:'break-all'}}>
+            {character.profile}
+          </div>
+        )}
+        <div style={{marginTop:10,textAlign:'right',fontSize:7,color:'#404070'}}>
+          {character.date} / ID: #{character.id}
+        </div>
+      </div>
+    </DQWindow>
+  );
+}
+
+// ─── Quest Log ───────────────────────────────────────────────────
+const QUEST_KEY = 'dq-quest-log';
+function loadQuests() {
+  try { return JSON.parse(localStorage.getItem(QUEST_KEY) || '[]'); } catch(e) { return []; }
+}
+function saveQuests(quests) {
+  localStorage.setItem(QUEST_KEY, JSON.stringify(quests));
+}
+
+function QuestLog() {
+  const [quests, setQuests] = useState(loadQuests);
+  const [input, setInput] = useState('');
+  const inputRef = useRef();
+
+  function addQuest() {
+    const text = input.trim();
+    if (!text) return;
+    const next = [{ id: Date.now(), text, done: false, createdAt: new Date().toLocaleDateString('ja-JP') }, ...quests];
+    setQuests(next); saveQuests(next);
+    setInput(''); selectSound();
+    inputRef.current?.focus();
+  }
+  function toggleQuest(id) {
+    cursorSound();
+    const next = quests.map(q => q.id === id ? { ...q, done: !q.done } : q);
+    setQuests(next); saveQuests(next);
+  }
+  function deleteQuest(id) {
+    cancelSound();
+    const next = quests.filter(q => q.id !== id);
+    setQuests(next); saveQuests(next);
+  }
+
+  return (
+    <DQWindow title="◆ クエストログ ◆">
+      <div style={{display:'flex',gap:8,marginBottom:14}}>
+        <input
+          ref={inputRef}
+          className="dq-input"
+          style={{fontSize:11,flex:1}}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') addQuest(); }}
+          placeholder="あたらしいクエスト..."
+          maxLength={50}
+        />
+        <button className="dq-btn" onClick={addQuest} disabled={!input.trim()}
+          style={{padding:'8px 14px',fontSize:10,flexShrink:0}}>＋</button>
+      </div>
+      {quests.length === 0 ? (
+        <div style={{textAlign:'center',color:'#505090',fontSize:9,padding:'20px 0',lineHeight:2.5}}>
+          クエストがありません
+        </div>
+      ) : (
+        <div className="scroll-list">
+          {quests.map(q => (
+            <div key={q.id} className={`quest-item${q.done?' done':''}`}>
+              <div className={`quest-check${q.done?' checked':''}`} onClick={() => toggleQuest(q.id)}>
+                {q.done ? '✓' : ''}
+              </div>
+              <span style={{flex:1,lineHeight:1.8}}>{q.text}</span>
+              <button onClick={() => deleteQuest(q.id)}
+                style={{background:'none',border:'none',color:'#ff8080',cursor:'pointer',
+                  fontFamily:'Press Start 2P',fontSize:9,padding:'2px 6px'}}>✕</button>
+            </div>
+          ))}
+        </div>
+      )}
+      {quests.length > 0 && (
+        <div style={{marginTop:10,fontSize:7,color:'#404070',textAlign:'right'}}>
+          {quests.filter(q=>q.done).length}/{quests.length} かんりょう
+        </div>
+      )}
+    </DQWindow>
+  );
+}
+
+// ─── Adventure Locations ─────────────────────────────────────────
+function AdventureLocations() {
+  const locations = [
+    { icon:'⚔️', label:'そうびの　ま',        desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
+    { icon:'📖', label:'モンスター　ずかん',   desc:'討伐した敵を記録する',     href:'monsters.html' },
+    { icon:'✨', label:'まほう　としょかん',   desc:'習得した呪文を管理する',   href:null },
+    { icon:'🏟️', label:'バトル　アリーナ',   desc:'強敵に挑め',               href:null },
+  ];
+  return (
+    <DQWindow title="◆ ぼうけんの　ばしょ ◆">
+      <div style={{fontSize:8,color:'#505080',marginBottom:14,lineHeight:2}}>
+        ※ これからのクエストで かいほうされる
+      </div>
+      {locations.map((loc,i) => (
+        <div key={i} className={`location-card${loc.href ? '' : ' locked'}`}
+          onClick={() => { if(loc.href){ selectSound(); location.href=loc.href; } else cursorSound(); }}>
+          <span style={{fontSize:20}}>{loc.icon}</span>
+          <div>
+            <div style={{fontSize:9,color: loc.href ? '#ffec40' : '#606080',marginBottom:4}}>{loc.label}</div>
+            <div style={{fontSize:7,color:'#404070'}}>{loc.desc}</div>
+          </div>
+          <div style={{marginLeft:'auto',fontSize:8,color: loc.href ? '#a0c0ff' : '#303060'}}>
+            {loc.href ? '▶' : '🔒'}
+          </div>
+        </div>
+      ))}
+    </DQWindow>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────
+function App() {
+  const [character, setCharacter] = useState(null);
+  const [equipped, setEquipped] = useState({});
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('dq-character');
+      if (raw) setCharacter(JSON.parse(raw));
+      const eq = localStorage.getItem('dq-equipment');
+      if (eq) setEquipped(JSON.parse(eq));
+    } catch(e) {}
+  }, []);
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'20px 12px 40px',paddingTop:'max(20px, env(safe-area-inset-top))',position:'relative',zIndex:1}}>
+      <div style={{textAlign:'center',marginBottom:20}}>
+        <div style={{fontSize:10,color:'#4040c0',letterSpacing:4,marginBottom:6}}>⚔️ ⚔️ ⚔️</div>
+        <div style={{fontSize:16,color:'#ffec40',letterSpacing:4,textShadow:'2px 2px #000, 0 0 20px rgba(255,220,0,0.4)',marginBottom:4}}>ギルド本部</div>
+        <div style={{fontSize:9,color:'#8080c0',letterSpacing:3}}>GUILD HEADQUARTERS</div>
+      </div>
+      <div style={{width:'100%',maxWidth:600,display:'flex',flexDirection:'column',gap:20}}>
+        <div className="fade-in"><CharacterPanel character={character} equipped={equipped}/></div>
+        <div className="fade-in" style={{animationDelay:'0.1s'}}><QuestLog/></div>
+        <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations/></div>
+        <div style={{textAlign:'center'}}>
+          <a href="index.html" style={{fontSize:8,color:'#4040a0',letterSpacing:2}}>← 登録ページへもどる</a>
+        </div>
+      </div>
+      <div style={{marginTop:20,fontSize:7,color:'#2a2a60',textAlign:'center',letterSpacing:2}}>
+        ADVENTURER'S GUILD © {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

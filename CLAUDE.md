@@ -1,102 +1,105 @@
-# 冒険者ギルド登録アプリ — Claude 編集ガイド
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## プロジェクト概要
 
-ドラゴンクエスト風UIの冒険者ギルド登録ウェブアプリ。GitHub Pages で公開されている静的HTMLアプリ。
+ドラゴンクエスト風UIの冒険者ギルドウェブアプリ。GitHub Pages で公開される静的HTMLアプリ。ビルドツール不要。
 
 **公開URL**: https://iori-tominaga.github.io/guild-registration/
 
-## ファイル構成
+---
+
+@.claude/rules/world.md
+
+---
+
+@.claude/rules/architecture.md
+
+---
+
+@.claude/rules/monsters.md
+
+---
+
+## バージョン管理ルール
+
+アプリのバージョンは **`ver. X.Y.Z`** 形式で管理する。
+
+| 桁 | 増やすタイミング |
+|---|---|
+| **X**（左） | クエストによるコード更新 |
+| **Y**（中） | クエスト以外の通常アップデート |
+| **Z**（右） | バグ修正 |
+
+**リセットルール：**
+- X を上げたら → Y・Z を 0 にリセット
+- Y を上げたら → Z を 0 にリセット
+
+バージョンはコミットメッセージ・ドキュメントの変更履歴に必ず記載すること。
+
+---
+
+## 指示確認ルール
+
+オーナーから新しい指示・要件を受け取ったときは、**実装前に必ず理解内容をオーナーに言葉で確認する**。
+
+手順：
+1. 指示を自分の言葉で噛み砕いて説明する
+2. オーナーに「この理解で合っていますか？」と確認する
+3. 承認を得てから実装を開始する
+
+複雑な指示ほど認識のズレが起きやすい。手戻りを防ぐために省略しないこと。
+
+---
+
+## Claude 学習サポートルール
+
+このプロジェクトはオーナーが **Claude Code の使い方を学ぶ**ために進めている。
+そのため、各クエストの作業説明には必ず以下の2項目を含めること。
+
+### 1. 今回使った Claude の機能
+クエストで実際に使った機能を列挙し、それぞれ一言で何のために使ったか説明する。
+
+例）
+| 使った機能 | 用途 |
+|---|---|
+| `/init` スキル | CLAUDE.md の初期生成 |
+| `Edit` ツール（複数回） | 既存ファイルを部分的に書き換え |
+| `Agent` サブエージェント | 大きなファイル生成をタイムアウトなく実行 |
+| `TodoWrite` ツール | 作業ステップの進捗管理 |
+
+### 2. より活用できる Claude の機能（提案）
+今回やらなかったが、使いこなせばより効率的・高品質になる機能を提案する。
+「なぜ良くなるか」をセットで説明すること。
+
+例）
+- **`/review` スキル** — 実装後にコードレビューをかけると、バグや改善点を自動で指摘してもらえる
+- **`/ultrareview`** — PR 単位で多角的なレビューが受けられる。チームレビューの代替になる
+- **並列 Agent 実行** — 複数ファイルの作成を同時に走らせると実装時間を短縮できる
+
+---
+
+## ドキュメント更新ルール
+
+**コードを変更したら、必ず以下のドキュメントも同じコミットで更新すること。**
+
+| ドキュメント | 更新が必要なとき |
+|---|---|
+| `docs/requirements.md` | 機能追加・変更・削除をしたとき |
+| `docs/external-spec.md` | 新しいページ・機能のテスト仕様を追加するとき |
+
+更新の手順：
+1. `requirements.md` のバージョンを上げ、変更内容を「7. 変更履歴」に追記する
+2. `external-spec.md` のバージョンを合わせ、新機能に対応するテストケース（TC-XX）を追加する
+3. コードとドキュメントを同じコミットに含める
+
+---
+
+## デプロイ
+
+`master` ブランチに push すると GitHub Actions が自動デプロイ（約1〜2分）。
 
 ```
-guild-registration/
-├── index.html          # アプリ本体（これ1ファイルですべて完結）
-├── CLAUDE.md           # このファイル
-└── docs/
-    ├── requirements.md     # 要件定義書
-    └── external-spec.md    # 外部仕様書（テスト仕様）
+変更 → commit → push origin master → 自動デプロイ → 公開URL反映
 ```
-
-## 技術スタック
-
-| 項目 | 内容 |
-|------|------|
-| 言語 | HTML / CSS / JavaScript (JSX) |
-| フレームワーク | React 18.3.1（CDN経由） |
-| JSXトランスパイル | Babel Standalone 7.29.0（CDN） |
-| フォント | Press Start 2P（Google Fonts） |
-| ホスティング | GitHub Pages（master ブランチ root） |
-
-> **重要**: ビルドツール・node_modules・package.json は一切不要。`index.html` を直接編集するだけで動く。
-
-## 編集方法
-
-**唯一の編集対象: `index.html`**
-
-ファイルは3つのセクションで構成されている：
-
-1. **`<head>` 内 `<style>` タグ** (12〜323行目) — CSSスタイル定義
-2. **`<script type="text/babel">` タグ** (329〜806行目) — React コンポーネント（JSX）
-
-### コンポーネント構成
-
-```
-App (メイン)
-├── StepName       — Step 1: 名前入力
-├── StepClass      — Step 2: 職業選択（9種類）
-├── StepProfile    — Step 3: 自己紹介入力
-├── StepConfirm    — Step 4: 確認画面
-└── StepComplete   — Step 5: 登録完了・冒険者カード表示
-
-補助コンポーネント:
-├── DQWindow       — ドラクエ風ウィンドウ枠
-├── ClassSprite    — ピクセルアートキャラクター（SVG）
-└── StatBars       — ステータスバー表示
-
-フック:
-└── useTypewriter  — タイプライター演出フック
-
-定数:
-└── CLASSES        — 職業データ配列（9種）
-```
-
-### 主要な定数・データ
-
-**職業リスト** (`CLASSES` 配列, 383〜393行目):
-```js
-{ id, label, icon, stats: {力, 素早, 守備, 魔力, 回復} }
-```
-
-**ランクマップ** (`StepComplete` 内, 673行目):
-```js
-const rankMap = {warrior:'C', mage:'C', priest:'C', ...}
-```
-
-## デプロイ方法
-
-`master` ブランチに push すると GitHub Actions が自動的に GitHub Pages へデプロイする。
-
-```
-変更 → commit → push origin master → 自動デプロイ → 公開URL反映（約1〜2分）
-```
-
-## よくある変更例
-
-### 職業を追加する
-`CLASSES` 配列（383行目付近）に新しいオブジェクトを追加し、`ClassSprite` の `colors` オブジェクトと `rankMap` にも対応エントリを追加する。
-
-### テキスト・メッセージを変更する
-各 `Step*` コンポーネント内の `useTypewriter(...)` の引数文字列を変更する。
-
-### 色・スタイルを変更する
-`<style>` タグ内のCSS変数・セレクタを直接編集する。メインカラーは `#ffec40`（黄）、`#000060`（濃紺）、`#c0d8ff`（薄青）。
-
-### ランクロジックを変更する
-`StepComplete` コンポーネント内の `rankMap` オブジェクト（673行目付近）を編集する。
-
-## モバイル対応メモ
-
-- `@media (max-width: 520px)` で font-size 16px（iOS自動ズーム防止）
-- `min-height: 44px` でタッチターゲット確保
-- `env(safe-area-inset-top)` でノッチ対応
-- 職業選択のステータスパネルはスマホでは非表示（`.class-step-sidebar`）

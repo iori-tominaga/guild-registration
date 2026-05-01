@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>冒険者ギルド 装備の間</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px #000, 6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+  }
+  .dq-window::before {
+    content: ''; position: absolute; inset: 3px;
+    border: 2px solid #4848b8; pointer-events: none;
+  }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
+  .dq-content { padding: 20px; }
+  .dq-btn {
+    background: #000060;
+    border: 3px solid #c8c8c8;
+    outline: 2px solid #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 28px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.05s;
+    box-shadow: 3px 3px 0 #000;
+  }
+  .dq-btn:hover { background: #2020a0; color: #ffec40; border-color: #ffec40; }
+  .dq-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+  .dq-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .stat-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .stat-label { font-size: 8px; color: #a0c0ff; width: 36px; flex-shrink: 0; }
+  .stat-track { flex: 1; height: 8px; background: #000030; border: 2px solid #404080; overflow: hidden; }
+  .stat-fill { height: 100%; transition: width 0.6s ease; }
+  .equip-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-bottom: 1px solid #1a1a60;
+    font-size: 9px; cursor: pointer;
+    transition: background 0.1s;
+  }
+  .equip-item:hover { background: #0a0a40; }
+  .equip-item.equipped { background: #001040; border-left: 3px solid #ffd700; }
+  .slot-panel {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid #1a1a60;
+    font-size: 9px;
+  }
+  .slot-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+  .slot-name { color: #a0c0ff; width: 56px; flex-shrink: 0; font-size: 8px; }
+  .slot-equipped { flex: 1; color: #ffec40; }
+  .slot-empty { flex: 1; color: #404070; }
+  .bonus-tag {
+    font-size: 7px; color: #40ff80;
+    background: #002020; border: 1px solid #204040;
+    padding: 2px 5px; margin-left: 4px;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease-out both; }
+  @keyframes equip-flash { 0%{opacity:0} 30%{opacity:1} 100%{opacity:0} }
+  .equip-flash {
+    position: fixed; inset: 0;
+    background: rgba(255,215,0,0.15);
+    pointer-events: none;
+    animation: equip-flash 0.5s ease-out forwards;
+    z-index: 100;
+  }
+  /* Focus highlight */
+  :focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 2px;
+  }
+  .dq-btn:focus-visible {
+    outline: 3px solid #ffec40;
+    outline-offset: 3px;
+    box-shadow: 3px 3px 0 #000, 0 0 8px rgba(255,236,64,0.5);
+  }
+  .equip-item:focus-visible { outline: 2px solid #ffec40; outline-offset: -2px; }
+
+  @media (max-width: 520px) {
+    .dq-content { padding: 14px; }
+    .dq-btn { min-height: 44px; padding: 10px 16px; font-size: 9px; }
+    .dq-title-bar { font-size: 9px; padding: 8px 12px; }
+    .equip-item { padding: 12px 10px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+// ─── Audio ───────────────────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+function getAudio() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+function beep(freq=440, dur=0.08, type='square', vol=0.15) {
+  try {
+    const ctx = getAudio();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(); osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function cursorSound() { beep(800, 0.05, 'square', 0.1); }
+function selectSound() { beep(1200, 0.1, 'square', 0.15); beep(1500, 0.1, 'square', 0.15); }
+function cancelSound() { beep(300, 0.15, 'square', 0.12); }
+function equipSound() {
+  [440, 554, 659, 880].forEach((f, i) => setTimeout(() => beep(f, 0.12, 'square', 0.18), i * 80));
+}
+
+// ─── DQ Window ──────────────────────────────────────────────────
+function DQWindow({ title, children, style }) {
+  return (
+    <div className="dq-window" style={style}>
+      {title && <div className="dq-title-bar">{title}</div>}
+      <div className="dq-content">{children}</div>
+    </div>
+  );
+}
+
+// ─── Equipment Data ──────────────────────────────────────────────
+const EQUIPMENT = [
+  // 武器 (weapon)
+  { id:'wood-stick',  slot:'weapon',    icon:'🪵', name:'きのぼう',     desc:'しょしんしゃのぶき',         bonus:{atk:5} },
+  { id:'copper-sword',slot:'weapon',    icon:'🗡️', name:'どうのつるぎ', desc:'ふつうのつるぎ',             bonus:{atk:15} },
+  { id:'iron-sword',  slot:'weapon',    icon:'⚔️', name:'てつのつるぎ', desc:'おもいがしっかりしている',   bonus:{atk:25} },
+  { id:'flame-sword', slot:'weapon',    icon:'🔥', name:'ほのおのつるぎ',desc:'ほのおをまとったつるぎ',    bonus:{atk:40, hp:10} },
+  { id:'holy-sword',  slot:'weapon',    icon:'✨', name:'せいなるつるぎ',desc:'ひかりかがやくせいけん',    bonus:{atk:55, mp:20} },
+  // 盾 (shield)
+  { id:'wood-shield', slot:'shield',    icon:'🪵', name:'きのたて',     desc:'かるいがよわい',             bonus:{def:5} },
+  { id:'iron-shield', slot:'shield',    icon:'🛡️', name:'てつのたて',   desc:'がっしりしたたて',           bonus:{def:15} },
+  { id:'magic-shield',slot:'shield',    icon:'💠', name:'まほうのたて', desc:'まほうをはじくたて',         bonus:{def:20, mp:10} },
+  // 鎧 (armor)
+  { id:'cloth-armor', slot:'armor',     icon:'👘', name:'ぬののよろい', desc:'かるくてうごきやすい',       bonus:{def:8,  hp:10} },
+  { id:'chain-armor', slot:'armor',     icon:'🥋', name:'くさりかたびら',desc:'てつのくさりであんだよろい', bonus:{def:20, hp:20} },
+  { id:'dragon-armor',slot:'armor',     icon:'🐉', name:'りゅうのよろい',desc:'りゅうのうろこでできたよろい',bonus:{def:35, hp:40} },
+  // アクセサリ (accessory)
+  { id:'power-charm', slot:'accessory', icon:'💪', name:'ちからのまもり',desc:'ちからがわきでるまもり',    bonus:{atk:10} },
+  { id:'sage-ring',   slot:'accessory', icon:'💍', name:'けんじゃのゆびわ',desc:'まりょくがますゆびわ',   bonus:{mp:30, atk:5} },
+  { id:'guard-charm', slot:'accessory', icon:'🧿', name:'まもりのおまもり',desc:'みをまもるおまもり',     bonus:{def:10, hp:15} },
+];
+
+const SLOTS = [
+  { key:'weapon',    label:'ぶき',       icon:'⚔️' },
+  { key:'shield',    label:'たて',       icon:'🛡️' },
+  { key:'armor',     label:'よろい',     icon:'🥋' },
+  { key:'accessory', label:'アクセサリ', icon:'💍' },
+];
+
+const EQUIP_KEY = 'dq-equipment';
+const CHAR_KEY  = 'dq-character';
+
+function loadEquipped() {
+  try { return JSON.parse(localStorage.getItem(EQUIP_KEY) || '{}'); } catch(e) { return {}; }
+}
+function saveEquipped(eq) { localStorage.setItem(EQUIP_KEY, JSON.stringify(eq)); }
+
+function bonusText(bonus) {
+  return Object.entries(bonus).map(([k, v]) => `${k.toUpperCase()}+${v}`).join(' ');
+}
+
+// ─── Slot Panel ─────────────────────────────────────────────────
+function SlotPanel({ equipped }) {
+  return (
+    <DQWindow title="◆ そうびスロット ◆">
+      {SLOTS.map(sl => {
+        const item = equipped[sl.key] ? EQUIPMENT.find(e => e.id === equipped[sl.key]) : null;
+        return (
+          <div key={sl.key} className="slot-panel">
+            <span className="slot-icon">{sl.icon}</span>
+            <span className="slot-name">{sl.label}</span>
+            {item
+              ? <span className="slot-equipped">{item.icon} {item.name}<span className="bonus-tag">{bonusText(item.bonus)}</span></span>
+              : <span className="slot-empty">── なし ──</span>
+            }
+          </div>
+        );
+      })}
+    </DQWindow>
+  );
+}
+
+// ─── Stat Preview ────────────────────────────────────────────────
+function StatPreview({ character, equipped }) {
+  if (!character) return null;
+  const s = character.cls.stats;
+  const base = { hp: s.守備*2, mp: s.魔力*2, atk: s.力, def: s.守備, spd: s.素早 };
+  const bonus = { hp:0, mp:0, atk:0, def:0, spd:0 };
+  Object.values(equipped).forEach(id => {
+    if (!id) return;
+    const item = EQUIPMENT.find(e => e.id === id);
+    if (item) Object.entries(item.bonus).forEach(([k,v]) => { if (bonus[k] !== undefined) bonus[k] += v; });
+  });
+  const stats = [
+    { label:'HP',  value: base.hp  + bonus.hp,  base: base.hp,  color:'#40ff40' },
+    { label:'MP',  value: base.mp  + bonus.mp,  base: base.mp,  color:'#40c0ff' },
+    { label:'ATK', value: base.atk + bonus.atk, base: base.atk, color:'#ff8040' },
+    { label:'DEF', value: base.def + bonus.def, base: base.def, color:'#40ffff' },
+    { label:'SPD', value: base.spd + bonus.spd, base: base.spd, color:'#ffff40' },
+  ];
+  return (
+    <DQWindow title="◆ ステータス ◆">
+      <div style={{fontSize:9,color:'#ffec40',marginBottom:12}}>{character.name} <span style={{fontSize:7,color:'#a0c0ff'}}>{character.cls.icon} {character.cls.label}</span></div>
+      {stats.map(st => (
+        <div key={st.label} className="stat-bar">
+          <span className="stat-label">{st.label}</span>
+          <div className="stat-track">
+            <div className="stat-fill" style={{width: Math.min(st.value/2, 100)+'%', background:`linear-gradient(90deg,${st.color}88,${st.color})`}}/>
+          </div>
+          <span style={{fontSize:8, color: st.value > st.base ? '#40ff80' : '#a0c0ff', width:32, textAlign:'right'}}>{st.value}</span>
+          {st.value > st.base && <span style={{fontSize:7,color:'#40ff80'}}>▲{st.value-st.base}</span>}
+        </div>
+      ))}
+    </DQWindow>
+  );
+}
+
+// ─── Equipment List ──────────────────────────────────────────────
+function EquipList({ equipped, onEquip, onUnequip, filterSlot }) {
+  const items = filterSlot ? EQUIPMENT.filter(e => e.slot === filterSlot) : EQUIPMENT;
+  return (
+    <div>
+      {SLOTS.map(sl => {
+        const group = items.filter(e => e.slot === sl.key);
+        if (group.length === 0) return null;
+        return (
+          <div key={sl.key} style={{marginBottom:14}}>
+            <div style={{fontSize:8,color:'#a0c0ff',marginBottom:6,letterSpacing:2}}>── {sl.icon} {sl.label} ──</div>
+            {group.map(item => {
+              const isEquipped = equipped[item.slot] === item.id;
+              return (
+                <div key={item.id} className={`equip-item${isEquipped ? ' equipped' : ''}`}>
+                  <span style={{fontSize:16,flexShrink:0}}>{item.icon}</span>
+                  <div style={{flex:1}}>
+                    <div style={{color: isEquipped ? '#ffd700' : '#c0d8ff', marginBottom:3}}>{item.name}</div>
+                    <div style={{fontSize:7,color:'#505080'}}>{item.desc}</div>
+                    <div style={{fontSize:7,color:'#40ff80',marginTop:2}}>{bonusText(item.bonus)}</div>
+                  </div>
+                  {isEquipped
+                    ? <button className="dq-btn" onClick={() => onUnequip(item)} style={{fontSize:8,padding:'6px 10px',color:'#ff8080',borderColor:'#803030'}}>はずす</button>
+                    : <button className="dq-btn" onClick={() => onEquip(item)}   style={{fontSize:8,padding:'6px 10px',color:'#ffec40',borderColor:'#806000'}}>そうび</button>
+                  }
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────
+function App() {
+  const [character, setCharacter] = useState(null);
+  const [equipped, setEquipped] = useState(loadEquipped);
+  const [flash, setFlash] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHAR_KEY);
+      if (raw) setCharacter(JSON.parse(raw));
+    } catch(e) {}
+  }, []);
+
+  function equip(item) {
+    equipSound();
+    const next = { ...equipped, [item.slot]: item.id };
+    setEquipped(next);
+    saveEquipped(next);
+    setFlash(true);
+    setTimeout(() => setFlash(false), 500);
+  }
+
+  function unequip(item) {
+    cancelSound();
+    const next = { ...equipped, [item.slot]: null };
+    setEquipped(next);
+    saveEquipped(next);
+  }
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',
+      padding:'20px 12px 40px',paddingTop:'max(20px, env(safe-area-inset-top))',position:'relative',zIndex:1}}>
+      {flash && <div className="equip-flash"/>}
+      <div style={{textAlign:'center',marginBottom:20}}>
+        <div style={{fontSize:10,color:'#4040c0',letterSpacing:4,marginBottom:6}}>⚔️ 🛡️ ⚔️</div>
+        <div style={{fontSize:14,color:'#ffec40',letterSpacing:4,textShadow:'2px 2px #000, 0 0 20px rgba(255,220,0,0.4)',marginBottom:4}}>そうびの　ま</div>
+        <div style={{fontSize:9,color:'#8080c0',letterSpacing:3}}>EQUIPMENT ROOM</div>
+      </div>
+      <div style={{width:'100%',maxWidth:600,display:'flex',flexDirection:'column',gap:16}}>
+        <div className="fade-in"><StatPreview character={character} equipped={equipped}/></div>
+        <div className="fade-in" style={{animationDelay:'0.05s'}}><SlotPanel equipped={equipped}/></div>
+        <div className="fade-in" style={{animationDelay:'0.1s'}}>
+          <DQWindow title="◆ そうびいちらん ◆">
+            <EquipList equipped={equipped} onEquip={equip} onUnequip={unequip}/>
+          </DQWindow>
+        </div>
+        <div style={{textAlign:'center'}}>
+          <a href="board.html" style={{fontSize:8,color:'#4040a0',letterSpacing:2}}>← ギルド本部へもどる</a>
+        </div>
+      </div>
+      <div style={{marginTop:20,fontSize:7,color:'#2a2a60',textAlign:'center',letterSpacing:2}}>
+        ADVENTURER'S GUILD © {new Date().getFullYear()}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
