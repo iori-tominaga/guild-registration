@@ -153,7 +153,10 @@
   }
   .quest-check:focus-visible { outline: 2px solid #ffec40; outline-offset: 2px; }
   .location-card:focus-visible { outline: 2px solid #ffec40; outline-offset: -2px; }
-
+  /* Press interaction */
+  .dq-btn, .location-card { user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .dq-btn.pressing { background: #2020a0; color: #ffec40; border-color: #ffec40; transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+  .location-card.pressing { border-color: #ffec40; filter: brightness(1.2); }
   @media (max-width: 520px) {
     .dq-input { font-size: 16px; }
     .dq-content { padding: 14px; }
@@ -450,6 +453,31 @@ function AdventureLocations() {
 function App() {
   const [character, setCharacter] = useState(null);
   const [equipped, setEquipped] = useState({});
+  useEffect(() => {
+    const sel = '.dq-btn, .location-card';
+    function onDown(e) {
+      const t = e.target.closest(sel);
+      if (!t) return;
+      t.classList.add('pressing');
+      t.addEventListener('mouseleave', () => t.classList.remove('pressing'), { once: true });
+    }
+    function onUp() { document.querySelectorAll('.pressing').forEach(el => el.classList.remove('pressing')); }
+    function onMenu(e) { if (e.target.closest(sel)) e.preventDefault(); }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('touchend', onUp);
+    document.addEventListener('touchcancel', onUp);
+    document.addEventListener('contextmenu', onMenu);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('touchend', onUp);
+      document.removeEventListener('touchcancel', onUp);
+      document.removeEventListener('contextmenu', onMenu);
+    };
+  }, []);
   useEffect(() => {
     try {
       const raw = localStorage.getItem('dq-character');

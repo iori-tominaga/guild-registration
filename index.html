@@ -327,6 +327,10 @@
     background: #1a1a80;
   }
 
+  /* Press interaction */
+  .dq-btn, .class-item { user-select: none; -webkit-user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+  .dq-btn.pressing { background: #2020a0; color: #ffec40; border-color: #ffec40; transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+  .class-item.pressing { background: #1a1a80; outline: 2px solid #ffec40; outline-offset: -2px; }
   /* Mobile responsive */
   @media (max-width: 520px) {
     .dq-input    { font-size: 16px; }
@@ -849,6 +853,31 @@ function App() {
   const [name, setName] = useState('');
   const [cls, setCls] = useState(null);
   const [profile, setProfile] = useState('');
+  useEffect(() => {
+    const sel = '.dq-btn, .class-item';
+    function onDown(e) {
+      const t = e.target.closest(sel);
+      if (!t) return;
+      t.classList.add('pressing');
+      t.addEventListener('mouseleave', () => t.classList.remove('pressing'), { once: true });
+    }
+    function onUp() { document.querySelectorAll('.pressing').forEach(el => el.classList.remove('pressing')); }
+    function onMenu(e) { if (e.target.closest(sel)) e.preventDefault(); }
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('mouseup', onUp);
+    document.addEventListener('touchstart', onDown, { passive: true });
+    document.addEventListener('touchend', onUp);
+    document.addEventListener('touchcancel', onUp);
+    document.addEventListener('contextmenu', onMenu);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchstart', onDown);
+      document.removeEventListener('touchend', onUp);
+      document.removeEventListener('touchcancel', onUp);
+      document.removeEventListener('contextmenu', onMenu);
+    };
+  }, []);
   const [showHistory, setShowHistory] = useState(false);
   const [historyCount, setHistoryCount] = useState(() => loadHistory().length);
 
