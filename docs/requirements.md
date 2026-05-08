@@ -1,7 +1,7 @@
 # 要件定義書 — 冒険者ギルド登録アプリ
 
-**バージョン**: 1.4.2  
-**最終更新**: 2026-05-01  
+**バージョン**: 5.0.0  
+**最終更新**: 2026-05-08  
 **ステータス**: リリース済み（GitHub Pages）
 
 ---
@@ -44,6 +44,7 @@
 | ギルド本部 | board.html | Quest 02：ハブ・ステータス・クエストログ |
 | 装備の間 | equipment.html | Quest 03：装備装着・ステータス強化 |
 | モンスター図鑑 | monsters.html | Quest 04：モンスター一覧・討伐記録 |
+| まほうの まきもの | spells.html | Quest 05：呪文一覧・習得管理 |
 
 ---
 
@@ -74,8 +75,8 @@
 - 登録完了メッセージをタイプライター演出で表示する
 - 冒険者ギルドカードを発行・表示する（名前・職業・ランク・Lv・自己紹介・ステータス・登録日・ID）
 - パーティクルエフェクトとホワイトフラッシュ演出を再生する
-- キャラクターデータを localStorage の `dq-character` キーに保存する
-- 登録履歴を localStorage の `dq-guild-history` キーに追記する（最大50件）
+- キャラクターデータを localStorage の `codequest:save.character` キーに保存する
+- 登録履歴を localStorage の `codequest:save.history` キーに追記する（最大50件）
 - 「ギルド本部へ」ボタンで board.html へ遷移する
 
 #### 登録履歴閲覧
@@ -83,15 +84,15 @@
 - 履歴がある場合、タイトル下に「📜 きろく（N件）」ボタンを表示する
 - 確認ダイアログを経て履歴を全削除できる
 - 各ギルドカードに「▶ このキャラで　ギルド本部へ」ボタンを表示する
-  - ボタン押下時、そのカードのデータを `dq-character` に上書き保存して board.html へ遷移する
+  - ボタン押下時、そのカードのデータを `codequest:save.character` に上書き保存して board.html へ遷移する
 
 ### 3.2 ギルド本部（board.html）
 
 #### キャラクター情報パネル
-- localStorage の `dq-character` からキャラクターデータを読み込み表示する
+- localStorage の `codequest:save.character` からキャラクターデータを読み込み表示する
 - 表示項目：名前・職業アイコン・ランク・Lv・HP/MP/ATK/DEF/SPD
 - ステータスはバーグラフで可視化する
-- 装備ボーナス（`dq-equipment`）を加算して表示し、上昇分を緑の▲で示す
+- 装備ボーナス（`codequest:save.equipment`）を加算して表示し、上昇分を緑の▲で示す
 - キャラクターが未登録の場合、登録ページへのリンクを表示する
 
 #### 個人クエストログ
@@ -99,14 +100,50 @@
 - Enterキーまたは「＋」ボタンで追加する
 - チェックボックスで完了/未完了を切り替えられる
 - 「✕」ボタンでタスクを削除できる
-- データは localStorage の `dq-quest-log` に永続化される
+- データは localStorage の `codequest:save.questLog` に永続化される
+
+#### キャラクター情報パネル（Quest 05 追加分）
+- 習得呪文が1個以上ある場合、キャラクターパネルに「✨ 習得呪文: N 個」を表示する
+- 習得呪文数は localStorage の `codequest:save.character.spells` から読み込む
 
 #### 冒険の場所
 - 各クエストで追加される機能へのリンクカードを並べる
 - 未解放のリンクは🔒ロック表示とする
 - Quest 03 完了後、「そうびの　ま」（equipment.html）が解放される
+- Quest 05 完了後、「まほうの　まきもの」（spells.html）が解放される
 
-### 3.3 装備の間（equipment.html）
+### 3.3 まほうの まきもの（spells.html）
+
+#### 呪文データ（spells.json）
+- 15種の呪文データを `spells.json` で管理する。各呪文は以下を持つ：
+
+| 属性 | 内容 |
+|------|------|
+| id | 識別子（文字列） |
+| name | 呪文名（カタカナ） |
+| category | attack / heal / buff |
+| element | 炎 / 氷 / 雷 / 光 / 闇 / 補助 |
+| mpCost | MP消費量 |
+| power | 攻撃・回復量の基準値 |
+| targetScope | self / enemy / all_enemies / all_allies |
+| requiredLevel | 習得に必要なレベル（1〜15） |
+| description | 効果の説明文 |
+
+#### 習得ロジック
+- ページ読み込み時にキャラクターのレベルと `requiredLevel` を照合する
+- `character.lv >= spell.requiredLevel` を満たす呪文を自動的に習得済みとする
+- 習得済み呪文のIDを localStorage の `codequest:save.character.spells` に配列として保存する
+
+#### 表示
+- 属性ごとにグループ化して呪文を一覧表示する
+- カテゴリフィルター（すべて・こうげき・かいふく・バフ）で絞り込める
+- 習得済み呪文：黄色ハイライト、説明文・MP消費・威力・対象を表示する
+- 未習得呪文：グレーアウト表示、「Lv X で習得」バッジを表示する
+- カテゴリバッジ（attack=赤、heal=緑、buff=青）で種別を色分けする
+- ページ上部に「習得済み / 全呪文数」カウンターを表示する
+- キャラクター未登録時は登録促進メッセージを表示する
+
+### 3.4 装備の間（equipment.html）
 
 #### 装備データ
 武器5種・盾3種・鎧3種・アクセサリ3種（計14種）を所持する。各装備は以下を持つ：
@@ -132,9 +169,9 @@
 - 「そうび」ボタンで装着、「はずす」ボタンで解除する
 - 装着済みの装備はハイライト表示する
 - 装着時にゴールドフラッシュ演出と上昇音を再生する
-- 装備状態は localStorage の `dq-equipment` に保存される
+- 装備状態は localStorage の `codequest:save.equipment` に保存される
 
-### 3.4 UI・演出共通要件
+### 3.5 UI・演出共通要件
 
 | 要件 | 内容 |
 |------|------|
@@ -146,7 +183,7 @@
 | フォーカスハイライト | キーボード操作時に選択中の要素を黄色（#ffec40）でハイライト表示する（`:focus-visible`） |
 | プレスハイライト | 押下中のコンポーネントをハイライト表示する。テキスト選択・コンテキストメニュー等のweb挙動を抑制する。リリース時（要素上）にのみ機能を実行する |
 
-### 3.5 レスポンシブ要件
+### 3.6 レスポンシブ要件
 
 | ブレークポイント | 対応内容 |
 |-----------------|----------|
@@ -161,11 +198,12 @@
 
 | キー | 型 | 内容 |
 |------|----|------|
-| `dq-character` | Object | 最新の登録キャラクター情報 |
-| `dq-guild-history` | Array | 登録履歴（最大50件、新しい順） |
-| `dq-quest-log` | Array | 個人クエストログ |
-| `dq-equipment` | Object | 装着中の装備ID（スロットをキーとする） |
-| `dq-bestiary` | Object | `{ defeatedMonsterIds: [] }`（Quest 06 バトルで更新） |
+| `codequest:save.character` | Object | 最新の登録キャラクター情報 |
+| `codequest:save.history` | Array | 登録履歴（最大50件、新しい順） |
+| `codequest:save.questLog` | Array | 個人クエストログ |
+| `codequest:save.equipment` | Object | 装着中の装備ID（スロットをキーとする） |
+| `codequest:save.bestiary` | Object | `{ defeatedMonsterIds: [] }`（Quest 06 バトルで更新） |
+| `codequest:save.character.spells` | Array | 習得済み呪文IDの配列（spells.html で更新） |
 
 ---
 
@@ -199,3 +237,5 @@
 | 1.4.0 | 2026-05-01 | Quest 04：monsters.html（モンスター図鑑）追加。CLAUDE.md分割・Memoryファイル整備 |
 | 1.4.1 | 2026-05-01 | きろく画面に「ギルド本部へ」ボタン追加。全ページにフォーカスハイライトCSS追加。assets/フォルダ作成 |
 | 1.4.2 | 2026-05-01 | 全ページにプレスハイライト追加（押下ハイライト・web挙動抑制・リリース時実行） |
+| 4.3.0 | 2026-05-08 | localStorage キーを `codequest:save.*` 形式に統一（クリーン移行） |
+| 5.0.0 | 2026-05-08 | Quest 05：spells.html（まほうの まきもの）追加。呪文システム・習得ロジック・board.html連携 |
