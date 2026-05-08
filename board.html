@@ -343,7 +343,7 @@ function CharacterPanel({ character, equipped }) {
 }
 
 // ─── Quest Log ───────────────────────────────────────────────────
-const QUEST_KEY = 'dq-quest-log';
+const QUEST_KEY = 'codequest:save.questLog';
 function loadQuests() {
   try { return JSON.parse(localStorage.getItem(QUEST_KEY) || '[]'); } catch(e) { return []; }
 }
@@ -480,9 +480,9 @@ function App() {
   }, []);
   useEffect(() => {
     try {
-      const raw = localStorage.getItem('dq-character');
+      const raw = localStorage.getItem('codequest:save.character');
       if (raw) setCharacter(JSON.parse(raw));
-      const eq = localStorage.getItem('dq-equipment');
+      const eq = localStorage.getItem('codequest:save.equipment');
       if (eq) setEquipped(JSON.parse(eq));
     } catch(e) {}
   }, []);

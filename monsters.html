@@ -180,7 +180,7 @@ function DQWindow({ title, children, style }) {
 }
 
 // ─── Bestiary Storage ────────────────────────────────────────────
-const BESTIARY_KEY = 'dq-bestiary';
+const BESTIARY_KEY = 'codequest:save.bestiary';
 function loadBestiary() {
   try {
     const raw = localStorage.getItem(BESTIARY_KEY);

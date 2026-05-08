@@ -417,7 +417,7 @@ const CLASSES = [
 ];
 
 // ─── History ─────────────────────────────────────────────────────
-const HISTORY_KEY = 'dq-guild-history';
+const HISTORY_KEY = 'codequest:save.history';
 function loadHistory() {
   try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]'); } catch(e) { return []; }
 }
@@ -709,7 +709,7 @@ function StepComplete({ name, cls, profile, onSaved }) {
     setParticles(ps);
     const card = { name, cls, profile, rank, date: cardDate, id: cardId };
     saveToHistory(card);
-    localStorage.setItem('dq-character', JSON.stringify(card));
+    localStorage.setItem('codequest:save.character', JSON.stringify(card));
     if (onSaved) onSaved();
   }, []);
 
@@ -818,7 +818,7 @@ function StepHistory({ onBack }) {
                     className="dq-btn"
                     onClick={() => {
                       selectSound();
-                      localStorage.setItem('dq-character', JSON.stringify(card));
+                      localStorage.setItem('codequest:save.character', JSON.stringify(card));
                       location.href = 'board.html';
                     }}
                     style={{fontSize:8, padding:'6px 12px', color:'#ffec40', borderColor:'#806000', width:'100%'}}

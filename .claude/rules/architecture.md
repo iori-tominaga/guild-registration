@@ -29,9 +29,11 @@ guild-registration/
 
 ## localStorage 保存形式
 
+キー命名規則: `codequest:save.<category>` 形式で統一。
+
 ### キャラクター情報（最新の登録）
 ```
-キー: 'dq-character'
+キー: 'codequest:save.character'
 型:   { name, cls: { id, label, icon, stats }, profile, rank, date, id }
 ```
 
@@ -39,27 +41,33 @@ guild-registration/
 
 board.html では `HP = stats.守備 * 2`、`MP = stats.魔力 * 2`、`ATK = stats.力`、`DEF = stats.守備`、`SPD = stats.素早` のように派生させて表示する。
 
+### 習得呪文（spells.html）
+```
+キー: 'codequest:save.character.spells'
+型:   Array<string>  ※習得済み呪文IDの配列
+```
+
 ### 登録履歴
 ```
-キー: 'dq-guild-history'
+キー: 'codequest:save.history'
 型:   Array<{ name, cls, profile, rank, date, id }>  ※最大50件、新しい順
 ```
 
 ### 個人クエストログ（board.html）
 ```
-キー: 'dq-quest-log'
+キー: 'codequest:save.questLog'
 型:   Array<{ id, text, done, createdAt }>
 ```
 
 ### 装備（equipment.html）
 ```
-キー: 'dq-equipment'
+キー: 'codequest:save.equipment'
 型:   { weapon, shield, armor, accessory }  ※各値は装備ID or null
 ```
 
 ### モンスター討伐記録（monsters.html）
 ```
-キー: 'dq-bestiary'
+キー: 'codequest:save.bestiary'
 型:   { defeatedMonsterIds: [] }  ※Quest 06 バトルで埋まる
 ```
 

@@ -200,8 +200,8 @@ const SLOTS = [
   { key:'accessory', label:'アクセサリ', icon:'💍' },
 ];
 
-const EQUIP_KEY = 'dq-equipment';
-const CHAR_KEY  = 'dq-character';
+const EQUIP_KEY = 'codequest:save.equipment';
+const CHAR_KEY  = 'codequest:save.character';
 
 function loadEquipped() {
   try { return JSON.parse(localStorage.getItem(EQUIP_KEY) || '{}'); } catch(e) { return {}; }
