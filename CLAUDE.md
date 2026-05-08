@@ -22,6 +22,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+@game-spec/world.md
+
+---
+
+@game-spec/mechanics.md
+
+---
+
 ## バージョン管理ルール
 
 アプリのバージョンは **`ver. X.Y.Z`** 形式で管理する。

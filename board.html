@@ -280,6 +280,10 @@ function calcEquipBonus(equipped) {
 }
 
 // ─── Character Panel ─────────────────────────────────────────────
+const SPELLS_KEY = 'codequest:save.character.spells';
+function loadSpellCount() {
+  try { return (JSON.parse(localStorage.getItem(SPELLS_KEY) || '[]')).length; } catch(e) { return 0; }
+}
 function CharacterPanel({ character, equipped }) {
   const [tw] = useTypewriter('ぼうけんしゃのじょうたい', 50);
   if (!character) {
@@ -294,6 +298,7 @@ function CharacterPanel({ character, equipped }) {
   }
   const s = character.cls.stats;
   const bonus = calcEquipBonus(equipped);
+  const spellCount = loadSpellCount();
   const derived = [
     { label:'HP',  base: s.守備*2, value: s.守備*2 + bonus.hp,  max:200, color:'#40ff40' },
     { label:'MP',  base: s.魔力*2, value: s.魔力*2 + bonus.mp,  max:200, color:'#40c0ff' },
@@ -310,11 +315,16 @@ function CharacterPanel({ character, equipped }) {
           <div style={{flex:1}}>
             <div style={{fontSize:15,color:'#ffec40',letterSpacing:2,marginBottom:4}}>{character.name}</div>
             <div style={{fontSize:9,color:'#c0d8ff',marginBottom:6}}>{character.cls.icon} {character.cls.label}</div>
-            <div style={{display:'flex',gap:12}}>
+            <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
               <span style={{fontSize:8,color:'#a0c0ff'}}>ランク</span>
               <span style={{fontSize:13,color:'#ffd700'}}>{character.rank}</span>
               <span style={{fontSize:8,color:'#a0c0ff',marginLeft:8}}>Lv.1</span>
             </div>
+            {spellCount > 0 && (
+              <div style={{marginTop:6,fontSize:7,color:'#a0c0ff'}}>
+                ✨ 習得呪文: <span style={{color:'#ffec40'}}>{spellCount}</span> 個
+              </div>
+            )}
           </div>
         </div>
         <div style={{borderTop:'1px solid #2a2a80',paddingTop:12}}>
@@ -424,7 +434,7 @@ function AdventureLocations() {
   const locations = [
     { icon:'⚔️', label:'そうびの　ま',        desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
     { icon:'📖', label:'モンスター　ずかん',   desc:'討伐した敵を記録する',     href:'monsters.html' },
-    { icon:'✨', label:'まほう　としょかん',   desc:'習得した呪文を管理する',   href:null },
+    { icon:'✨', label:'まほうの　まきもの',   desc:'習得した呪文を管理する',   href:'spells.html' },
     { icon:'🏟️', label:'バトル　アリーナ',   desc:'強敵に挑め',               href:null },
   ];
   return (

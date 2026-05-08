@@ -1,0 +1,167 @@
+[
+  {
+    "id": "mera",
+    "name": "メラ",
+    "category": "attack",
+    "element": "炎",
+    "mpCost": 2,
+    "power": 15,
+    "targetScope": "enemy",
+    "requiredLevel": 1,
+    "description": "小さな炎で敵1体を攻撃する"
+  },
+  {
+    "id": "hoimi",
+    "name": "ホイミ",
+    "category": "heal",
+    "element": "光",
+    "mpCost": 3,
+    "power": 30,
+    "targetScope": "self",
+    "requiredLevel": 1,
+    "description": "味方1人のHPを少し回復する"
+  },
+  {
+    "id": "hyado",
+    "name": "ヒャド",
+    "category": "attack",
+    "element": "氷",
+    "mpCost": 3,
+    "power": 18,
+    "targetScope": "enemy",
+    "requiredLevel": 2,
+    "description": "冷気で敵1体を攻撃する"
+  },
+  {
+    "id": "sukara",
+    "name": "スカラ",
+    "category": "buff",
+    "element": "補助",
+    "mpCost": 4,
+    "power": 0,
+    "targetScope": "self",
+    "requiredLevel": 2,
+    "description": "守備力を1段階上げる"
+  },
+  {
+    "id": "gira",
+    "name": "ギラ",
+    "category": "attack",
+    "element": "炎",
+    "mpCost": 4,
+    "power": 28,
+    "targetScope": "all_enemies",
+    "requiredLevel": 3,
+    "description": "炎で敵全体を攻撃する"
+  },
+  {
+    "id": "rukani",
+    "name": "ルカニ",
+    "category": "buff",
+    "element": "闇",
+    "mpCost": 4,
+    "power": 0,
+    "targetScope": "enemy",
+    "requiredLevel": 3,
+    "description": "敵1体の守備力を1段階下げる"
+  },
+  {
+    "id": "behoimi",
+    "name": "ベホイミ",
+    "category": "heal",
+    "element": "光",
+    "mpCost": 6,
+    "power": 75,
+    "targetScope": "self",
+    "requiredLevel": 4,
+    "description": "味方1人のHPをかなり回復する"
+  },
+  {
+    "id": "raidein",
+    "name": "ライデイン",
+    "category": "attack",
+    "element": "雷",
+    "mpCost": 7,
+    "power": 45,
+    "targetScope": "all_enemies",
+    "requiredLevel": 5,
+    "description": "雷で敵全体を攻撃する"
+  },
+  {
+    "id": "baikuruto",
+    "name": "バイキルト",
+    "category": "buff",
+    "element": "補助",
+    "mpCost": 6,
+    "power": 0,
+    "targetScope": "self",
+    "requiredLevel": 6,
+    "description": "攻撃力を2段階上げる"
+  },
+  {
+    "id": "merami",
+    "name": "メラミ",
+    "category": "attack",
+    "element": "炎",
+    "mpCost": 6,
+    "power": 55,
+    "targetScope": "enemy",
+    "requiredLevel": 7,
+    "description": "強力な炎で敵1体を攻撃する"
+  },
+  {
+    "id": "hyadaruko",
+    "name": "ヒャダルコ",
+    "category": "attack",
+    "element": "氷",
+    "mpCost": 7,
+    "power": 52,
+    "targetScope": "all_enemies",
+    "requiredLevel": 8,
+    "description": "猛吹雪で敵全体を攻撃する"
+  },
+  {
+    "id": "behoma",
+    "name": "ベホマ",
+    "category": "heal",
+    "element": "光",
+    "mpCost": 10,
+    "power": 999,
+    "targetScope": "self",
+    "requiredLevel": 9,
+    "description": "味方1人のHPを完全に回復する"
+  },
+  {
+    "id": "io",
+    "name": "イオ",
+    "category": "attack",
+    "element": "光",
+    "mpCost": 8,
+    "power": 60,
+    "targetScope": "all_enemies",
+    "requiredLevel": 10,
+    "description": "爆発の光で敵全体を攻撃する"
+  },
+  {
+    "id": "mahyado",
+    "name": "マヒャド",
+    "category": "attack",
+    "element": "氷",
+    "mpCost": 10,
+    "power": 80,
+    "targetScope": "all_enemies",
+    "requiredLevel": 12,
+    "description": "絶対零度の吹雪で敵全体を攻撃する"
+  },
+  {
+    "id": "gigadein",
+    "name": "ギガデイン",
+    "category": "attack",
+    "element": "雷",
+    "mpCost": 15,
+    "power": 120,
+    "targetScope": "all_enemies",
+    "requiredLevel": 15,
+    "description": "究極の雷で敵全体を攻撃する"
+  }
+]

@@ -8,9 +8,14 @@ guild-registration/
 ├── board.html        # ギルド本部ハブ（Quest 02）
 ├── equipment.html    # 装備の間（Quest 03）
 ├── monsters.html     # モンスター図鑑（Quest 04）
+├── spells.html       # 呪文システム（Quest 05）
 ├── monsters.json     # モンスターデータ
+├── spells.json       # 呪文データ
 ├── CLAUDE.md
 ├── CLAUDE.local.md   # 個人設定（.gitignore対象）
+├── game-spec/
+│   ├── world.md      # 世界設定・属性定義
+│   └── mechanics.md  # ゲームメカニクス設計
 └── docs/
     ├── requirements.md
     └── external-spec.md
@@ -77,7 +82,8 @@ board.html では `HP = stats.守備 * 2`、`MP = stats.魔力 * 2`、`ATK = sta
 index.html（登録）
   └── 登録完了後 → board.html（ギルド本部）
         ├── equipment.html（装備の間）
-        └── monsters.html（モンスター図鑑）
+        ├── monsters.html（モンスター図鑑）
+        └── spells.html（呪文システム）
 ```
 
 ## コンポーネント・関数の共有パターン
