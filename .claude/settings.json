@@ -7,6 +7,7 @@
       "Bash(git add*)",
       "Bash(git commit*)",
       "Bash(git push*)",
+      "Bash(git pull*)",
       "Bash(git checkout*)",
       "Bash(git branch*)",
       "Bash(ls*)",
@@ -17,6 +18,34 @@
     "deny": [
       "Bash(rm -rf*)",
       "Bash(git push --force*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' pull origin master 2>$null; exit 0",
+            "statusMessage": "リモートから最新を取得中...",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$changes = git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' status --porcelain '.claude/'; if ($changes) { git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' add '.claude/'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' commit -m 'chore: auto-sync .claude config'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' push origin master }; exit 0",
+            "statusMessage": ".claude/ の変更を自動同期中...",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }
