@@ -4,21 +4,36 @@
 
 ```
 guild-registration/
-├── index.html        # 登録ページ（Quest 01）
-├── board.html        # ギルド本部ハブ（Quest 02）
-├── equipment.html    # 装備の間（Quest 03）
-├── monsters.html     # モンスター図鑑（Quest 04）
-├── spells.html       # 呪文システム（Quest 05）
-├── monsters.json     # モンスターデータ
-├── spells.json       # 呪文データ
-├── CLAUDE.md
-├── CLAUDE.local.md   # 個人設定（.gitignore対象）
-├── game-spec/
-│   ├── world.md      # 世界設定・属性定義
-│   └── mechanics.md  # ゲームメカニクス設計
+├── .claude/                   # Claude が参照するファイル
+│   ├── CLAUDE.md
+│   ├── game-spec/
+│   │   ├── world.md           # 世界設定・属性定義
+│   │   └── mechanics.md       # ゲームメカニクス設計
+│   ├── rules/
+│   │   ├── world.md           # UIルール・カラーテーマ
+│   │   ├── architecture.md    # アーキテクチャ仕様
+│   │   └── monsters.md        # モンスター設計ルール
+│   ├── commands/
+│   │   ├── update-qa.md
+│   │   ├── update-requirements.md
+│   │   └── update-test-cases.md
+│   └── settings.json
+├── .github/
+│   └── workflows/
+│       └── deploy.yml
+├── .gitignore
+├── src/                       # プロダクトのソースファイル
+│   ├── index.html             # 登録ページ（Quest 01）
+│   ├── board.html             # ギルド本部ハブ（Quest 02）
+│   ├── equipment.html         # 装備の間（Quest 03）
+│   ├── monsters.html          # モンスター図鑑（Quest 04）
+│   ├── spells.html            # 呪文システム（Quest 05）
+│   ├── monsters.json          # モンスターデータ
+│   └── spells.json            # 呪文データ
 └── docs/
-    ├── requirements.md
-    └── external-spec.md
+    └── specs/                 # 仕様書
+        ├── requirements.md
+        └── external-spec.md
 ```
 
 ## 技術スタック
@@ -29,7 +44,7 @@ guild-registration/
 | フレームワーク | React 18.3.1（CDN経由、UMD） |
 | JSXトランスパイル | Babel Standalone 7.29.0（CDN） |
 | フォント | Press Start 2P（Google Fonts） |
-| ホスティング | GitHub Pages（master ブランチ root） |
+| ホスティング | GitHub Pages（src/ ディレクトリを配信） |
 | デプロイ | `.github/workflows/deploy.yml`（master push で自動） |
 
 ## localStorage 保存形式
@@ -98,8 +113,8 @@ index.html（登録）
 `index.html` の `CLASSES` 配列に `{ id, label, icon, stats }` を追加し、`ClassSprite` の `colors` と `rankMap` にも同じ `id` でエントリを追加する。
 
 ### 新しいページ（クエスト）を追加する
-1. `board.html` の「冒険の場所」セクションにリンクカードを追加する
-2. 新しい HTML ファイルを root に作成する
+1. `src/board.html` の「冒険の場所」セクションにリンクカードを追加する
+2. 新しい HTML ファイルを `src/` に作成する
 
 ### テキストを変更する
 `useTypewriter('...', speed)` の第1引数を変更する。

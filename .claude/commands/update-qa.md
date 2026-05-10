@@ -20,12 +20,12 @@ git log --oneline -3
 
 **Agent A — requirements.md 更新**
 - `.claude/commands/update-requirements.md` を読み込む
-- その指示に従って `docs/requirements.md` を更新する
+- その指示に従って `docs/specs/requirements.md` を更新する
 - 完了したらバージョン番号と変更箇所を報告する
 
 **Agent B — external-spec.md 更新**
 - `.claude/commands/update-test-cases.md` を読み込む
-- その指示に従って `docs/external-spec.md` を更新する
+- その指示に従って `docs/specs/external-spec.md` を更新する
 - 完了したら追加した TC 番号と内容を報告する
 
 ### 3. 両 Agent の完了を待つ
@@ -33,7 +33,7 @@ git log --oneline -3
 ### 4. コミット・push
 
 ```bash
-git add docs/requirements.md docs/external-spec.md
+git add docs/specs/requirements.md docs/specs/external-spec.md
 git commit -m "docs: update QA docs to vX.Y.Z"
 git push -u origin master
 ```

@@ -1,7 +1,7 @@
 # external-spec.md 更新エージェント指示書
 
 `/update-qa` スキルから Agent として呼ばれます。
-`docs/external-spec.md` をコードの変更内容に合わせて更新し、新しいテストケースを追加してください。
+`docs/specs/external-spec.md` をコードの変更内容に合わせて更新し、新しいテストケースを追加してください。
 
 ## 手順
 
@@ -14,7 +14,7 @@ git diff HEAD~1 HEAD          # 直前コミットの差分
 
 ### 2. 次のバージョン番号の決定
 
-`docs/requirements.md` と同じロジックでバージョンを決定する（同じバージョンにする）：
+`docs/specs/requirements.md` と同じロジックでバージョンを決定する（同じバージョンにする）：
 
 | 条件 | 操作 |
 |---|---|
@@ -24,7 +24,7 @@ git diff HEAD~1 HEAD          # 直前コミットの差分
 
 ### 3. 既存の最大 TC 番号の確認
 
-`docs/external-spec.md` 全体を読み、`TC-XX` の最大番号を確認する。
+`docs/specs/external-spec.md` 全体を読み、`TC-XX` の最大番号を確認する。
 新しい TC は その番号 + 1 から採番する。
 
 ### 4. 新しいテストケースの追加

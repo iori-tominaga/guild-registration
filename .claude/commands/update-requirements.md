@@ -1,7 +1,7 @@
 # requirements.md 更新エージェント指示書
 
 `/update-qa` スキルから Agent として呼ばれます。
-`docs/requirements.md` をコードの変更内容に合わせて更新してください。
+`docs/specs/requirements.md` をコードの変更内容に合わせて更新してください。
 
 ## 手順
 
@@ -14,7 +14,7 @@ git diff HEAD~1 HEAD          # 直前コミットの差分
 
 ### 2. 現在のバージョンの読み取り
 
-`docs/requirements.md` のヘッダー（**バージョン**: X.Y.Z）を確認する。
+`docs/specs/requirements.md` のヘッダー（**バージョン**: X.Y.Z）を確認する。
 
 ### 3. 次のバージョン番号の決定
 

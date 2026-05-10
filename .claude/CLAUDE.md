@@ -10,15 +10,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-@.claude/rules/world.md
+@rules/world.md
 
 ---
 
-@.claude/rules/architecture.md
+@rules/architecture.md
 
 ---
 
-@.claude/rules/monsters.md
+@rules/monsters.md
 
 ---
 
@@ -94,8 +94,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | ドキュメント | 更新が必要なとき |
 |---|---|
-| `docs/requirements.md` | 機能追加・変更・削除をしたとき |
-| `docs/external-spec.md` | 新しいページ・機能のテスト仕様を追加するとき |
+| `docs/specs/requirements.md` | 機能追加・変更・削除をしたとき |
+| `docs/specs/external-spec.md` | 新しいページ・機能のテスト仕様を追加するとき |
 
 更新の手順：
 1. `requirements.md` のバージョンを上げ、変更内容を「7. 変更履歴」に追記する
