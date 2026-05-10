@@ -23,6 +23,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/configure-pages@v5
 
@@ -32,3 +34,102 @@ jobs:
 
       - id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Build Slack payload
+        run: |
+          python3 << 'PYEOF'
+          import subprocess, json, re
+
+          before = '${{ github.event.before }}'
+          current = '${{ github.sha }}'
+
+          if before and before != '0' * 40:
+              result = subprocess.run(
+                  ['git', 'log', '--pretty=format:%B[COMMIT_END]', f'{before}..{current}'],
+                  capture_output=True, text=True
+              )
+          else:
+              result = subprocess.run(
+                  ['git', 'log', '--pretty=format:%B[COMMIT_END]', '-1'],
+                  capture_output=True, text=True
+              )
+
+          text = result.stdout
+
+          version_match = re.search(r'ver\.\s*\d+\.\d+\.\d+', text)
+          version = version_match.group(0) if version_match else 'バージョン不明'
+
+          def extract_section(text, tag):
+              items = []
+              in_section = False
+              for line in text.split('\n'):
+                  stripped = line.strip()
+                  if stripped == f'[{tag}]':
+                      in_section = True
+                      continue
+                  if re.match(r'^\[(add|fix|change|COMMIT_END)\]$', stripped):
+                      in_section = False
+                  if in_section and stripped.startswith('-'):
+                      items.append(stripped)
+              return items
+
+          add_items = extract_section(text, 'add')
+          fix_items = extract_section(text, 'fix')
+          change_items = extract_section(text, 'change')
+
+          notes_parts = []
+          if add_items:
+              notes_parts.append('*✨ 機能追加*\n' + '\n'.join(add_items))
+          if fix_items:
+              notes_parts.append('*🐛 バグ修正*\n' + '\n'.join(fix_items))
+          if change_items:
+              notes_parts.append('*🔧 その他変更*\n' + '\n'.join(change_items))
+          notes = '\n'.join(notes_parts) if notes_parts else '（リリース情報なし）'
+
+          page_url = '${{ steps.deployment.outputs.page_url }}'
+          actor = '${{ github.actor }}'
+          short_sha = current[:7]
+
+          payload = {
+              "blocks": [
+                  {
+                      "type": "header",
+                      "text": {
+                          "type": "plain_text",
+                          "text": "🚀 冒険者ギルド — リリース完了！",
+                          "emoji": True
+                      }
+                  },
+                  {
+                      "type": "section",
+                      "fields": [
+                          {"type": "mrkdwn", "text": f"*アプリ*\n<{page_url}|guild-registration>"},
+                          {"type": "mrkdwn", "text": f"*バージョン*\n{version}"}
+                      ]
+                  },
+                  {
+                      "type": "section",
+                      "text": {
+                          "type": "mrkdwn",
+                          "text": f"*リリース情報*\n{notes}"
+                      }
+                  },
+                  {
+                      "type": "context",
+                      "elements": [
+                          {"type": "mrkdwn", "text": f"デプロイ者: @{actor}　|　`{short_sha}`"}
+                      ]
+                  }
+              ]
+          }
+
+          with open('slack_payload.json', 'w', encoding='utf-8') as f:
+              json.dump(payload, f, ensure_ascii=False)
+          PYEOF
+
+      - name: Notify Slack
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACKWEBHOOKURL }}
+          webhook-type: incoming-webhook
+          payload-file-path: slack_payload.json
