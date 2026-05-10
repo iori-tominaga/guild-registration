@@ -338,8 +338,8 @@
     .dq-content  { padding: 14px; }
     .dq-btn      { min-height: 44px; padding: 10px 18px; font-size: 10px; }
     .dq-title-bar { font-size: 9px; padding: 8px 12px; }
-    .class-step-sidebar  { display: none !important; }
     .class-step-layout   { display: block !important; }
+    .class-step-sidebar  { margin-top: 12px; width: 100% !important; }
     .keyboard-hint       { display: none !important; }
     .scroll-list { max-height: 200px; }
     .class-item { padding: 12px; min-height: 44px; }
@@ -559,7 +559,6 @@ function StepName({ onNext }) {
 // ─── Step 2: Class ────────────────────────────────────────────────
 function StepClass({ name, onNext, onBack }) {
   const [cursor, setCursor] = useState(0);
-  const [selected, setSelected] = useState(null);
   const prompt = `${name}のしょくぎょうをえらんでください`;
   const [twText, twDone] = useTypewriter(prompt, 50);
 
@@ -567,14 +566,14 @@ function StepClass({ name, onNext, onBack }) {
     const handler = e => {
       if (e.key === 'ArrowDown') { cursorSound(); setCursor(c => Math.min(c+1, CLASSES.length-1)); }
       if (e.key === 'ArrowUp')   { cursorSound(); setCursor(c => Math.max(c-1, 0)); }
-      if (e.key === 'Enter' && twDone) { selectSound(); setSelected(cursor); setTimeout(() => onNext(CLASSES[cursor]), 400); }
+      if (e.key === 'Enter' && twDone) { selectSound(); onNext(CLASSES[cursor]); }
       if (e.key === 'Escape') { cancelSound(); onBack(); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, [cursor, twDone]);
 
-  const cls = selected !== null ? CLASSES[selected] : CLASSES[cursor];
+  const cls = CLASSES[cursor];
 
   return (
     <div className="fade-in class-step-layout" style={{display:'flex', gap:16}}>
@@ -588,7 +587,7 @@ function StepClass({ name, onNext, onBack }) {
             <div
               key={c.id}
               className={`class-item${cursor===i?' active':''}`}
-              onClick={() => { cursorSound(); setCursor(i); selectSound(); setSelected(i); setTimeout(() => onNext(c), 400); }}
+              onClick={() => { cursorSound(); setCursor(i); }}
               onMouseEnter={() => { cursorSound(); setCursor(i); }}
             >
               <span className="cursor-arrow">{cursor===i ? '►' : '　'}</span>
@@ -597,11 +596,14 @@ function StepClass({ name, onNext, onBack }) {
             </div>
           ))}
         </div>
-        <div style={{marginTop:10, display:'flex', justifyContent:'space-between'}}>
+        <div style={{marginTop:10, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
           <button className="dq-btn" onClick={() => { cancelSound(); onBack(); }} style={{fontSize:9,padding:'8px 16px'}}>◀ もどる</button>
-          <div className="keyboard-hint" style={{fontSize:8, color:'#505080', display:'flex', alignItems:'center', gap:4}}>
-            <span>↑↓</span><span>カーソル</span>
-            <span style={{marginLeft:8}}>Enter</span><span>けってい</span>
+          <div style={{display:'flex', alignItems:'center', gap:8}}>
+            <div className="keyboard-hint" style={{fontSize:8, color:'#505080', display:'flex', alignItems:'center', gap:4}}>
+              <span>↑↓</span><span>カーソル</span>
+              <span style={{marginLeft:8}}>Enter</span><span>けってい</span>
+            </div>
+            <button className="dq-btn" disabled={!twDone} onClick={() => { selectSound(); onNext(CLASSES[cursor]); }}>▶ けってい</button>
           </div>
         </div>
       </div>
