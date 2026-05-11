@@ -40,7 +40,7 @@
           {
             "type": "command",
             "shell": "powershell",
-            "command": "$changes = git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' status --porcelain '.claude/'; if ($changes) { git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' add '.claude/'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' commit -m 'chore: auto-sync .claude config'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' push origin master }; exit 0",
+            "command": "$changes = git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' status --porcelain '.claude/' '.github/' 'docs/'; if ($changes) { git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' add '.claude/' '.github/' 'docs/'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' commit -m 'chore: auto-sync config and docs'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' push origin master }; exit 0",
             "statusMessage": ".claude/ の変更を自動同期中...",
             "timeout": 30
           }
