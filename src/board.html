@@ -462,22 +462,65 @@ function QuestLog() {
   );
 }
 
+// ─── Monster Select Modal ─────────────────────────────────────────
+const TYPE_ICONS = { 'スライム系':'🫧', '魔獣系':'🐺', '不死系':'💀', 'ドラゴン系':'🐉', '人型':'🗡️' };
+function MonsterSelectModal({ monsters, onClose }) {
+  const sorted = [...monsters].sort((a,b) => (a.level||0)-(b.level||0));
+  return (
+    <div style={{
+      position:'fixed', inset:0, background:'rgba(0,0,0,0.88)',
+      zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', padding:'12px'
+    }} onClick={e => { if(e.target===e.currentTarget) onClose(); }}>
+      <div style={{width:'100%',maxWidth:520,maxHeight:'85vh',display:'flex',flexDirection:'column'}}>
+        <DQWindow title="◆ てきをえらべ ◆">
+          <div style={{fontSize:8,color:'#a0c0ff',marginBottom:12,lineHeight:2}}>
+            たたかうモンスターをえらんでください
+          </div>
+          <div className="scroll-list">
+            {sorted.map(m => (
+              <div key={m.id} className="location-card"
+                onClick={() => { selectSound(); location.href=`battle.html?monster=${m.id}`; }}>
+                <span style={{fontSize:18}}>{TYPE_ICONS[m.type]||'👾'}</span>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:9,color:'#ffec40',marginBottom:3}}>{m.name}</div>
+                  <div style={{fontSize:7,color:'#505080'}}>Lv.{m.level}　{m.type}</div>
+                </div>
+                <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:2,marginRight:6}}>
+                  <span style={{fontSize:7,color:'#40ff40'}}>HP {m.hp}</span>
+                  <span style={{fontSize:7,color:'#ff8040'}}>ATK {m.atk}</span>
+                </div>
+                <div style={{fontSize:8,color:'#a0c0ff'}}>▶</div>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:'center',marginTop:12}}>
+            <button className="dq-btn" onClick={onClose}
+              style={{fontSize:9,padding:'10px 24px'}}>キャンセル</button>
+          </div>
+        </DQWindow>
+      </div>
+    </div>
+  );
+}
+
 // ─── Adventure Locations ─────────────────────────────────────────
-function AdventureLocations() {
+function AdventureLocations({ onBattleSelect }) {
   const locations = [
-    { icon:'⚔️', label:'そうびの　ま',        desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
-    { icon:'📖', label:'モンスター　ずかん',   desc:'討伐した敵を記録する',     href:'monsters.html' },
-    { icon:'✨', label:'まほうの　まきもの',   desc:'習得した呪文を管理する',   href:'spells.html' },
-    { icon:'⚔️', label:'せんいの　ば',        desc:'モンスターとたたかう',      href:'battle.html' },
+    { icon:'⚔️', label:'そうびの　ま',       desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
+    { icon:'📖', label:'モンスター　ずかん',  desc:'討伐した敵を記録する',     href:'monsters.html' },
+    { icon:'✨', label:'まほうの　まきもの',  desc:'習得した呪文を管理する',   href:'spells.html' },
+    { icon:'⚔️', label:'たたかいの　ば',     desc:'モンスターをえらんでたたかう', href:'battle.html', battle:true },
   ];
   return (
     <DQWindow title="◆ ぼうけんの　ばしょ ◆">
-      <div style={{fontSize:8,color:'#505080',marginBottom:14,lineHeight:2}}>
-        ※ これからのクエストで かいほうされる
-      </div>
       {locations.map((loc,i) => (
         <div key={i} className={`location-card${loc.href ? '' : ' locked'}`}
-          onClick={() => { if(loc.href){ selectSound(); location.href=loc.href; } else cursorSound(); }}>
+          onClick={() => {
+            if (!loc.href) { cursorSound(); return; }
+            selectSound();
+            if (loc.battle && onBattleSelect) { onBattleSelect(); return; }
+            location.href = loc.href;
+          }}>
           <span style={{fontSize:20}}>{loc.icon}</span>
           <div>
             <div style={{fontSize:9,color: loc.href ? '#ffec40' : '#606080',marginBottom:4}}>{loc.label}</div>
@@ -496,15 +539,15 @@ function AdventureLocations() {
 function App() {
   const [character, setCharacter] = useState(null);
   const [equipped, setEquipped] = useState({});
+  const [monsters, setMonsters] = useState([]);
+  const [showMonsterSelect, setShowMonsterSelect] = useState(false);
   const goFight = () => {
     selectSound();
-    fetch('monsters.json')
-      .then(r => r.json())
-      .then(data => {
-        const m = data[Math.floor(Math.random() * data.length)];
-        location.href = `battle.html?monster=${m.id}`;
-      })
-      .catch(() => { location.href = 'battle.html'; });
+    const src = monsters.length > 0 ? Promise.resolve(monsters) : fetch('monsters.json').then(r => r.json());
+    src.then(data => {
+      const m = data[Math.floor(Math.random() * data.length)];
+      location.href = `battle.html?monster=${m.id}`;
+    }).catch(() => { location.href = 'battle.html'; });
   };
   useEffect(() => {
     const sel = '.dq-btn, .location-card';
@@ -532,6 +575,9 @@ function App() {
     };
   }, []);
   useEffect(() => {
+    fetch('monsters.json').then(r => r.json()).then(setMonsters).catch(() => {});
+  }, []);
+  useEffect(() => {
     function loadSave() {
       try {
         const raw = localStorage.getItem('codequest:save.character');
@@ -547,6 +593,7 @@ function App() {
   }, []);
 
   return (
+    {showMonsterSelect && <MonsterSelectModal monsters={monsters} onClose={() => setShowMonsterSelect(false)}/>}
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',
       padding:'20px 12px 40px',paddingTop:'max(20px, env(safe-area-inset-top))',position:'relative',zIndex:1}}>
       <div style={{textAlign:'center',marginBottom:20}}>
@@ -565,7 +612,7 @@ function App() {
           </div>
         )}
         <div className="fade-in" style={{animationDelay:'0.1s'}}><QuestLog/></div>
-        <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations/></div>
+        <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations onBattleSelect={() => setShowMonsterSelect(true)}/></div>
         <div style={{textAlign:'center'}}>
           <a href="index.html" style={{fontSize:8,color:'#4040a0',letterSpacing:2}}>← 登録ページへもどる</a>
         </div>

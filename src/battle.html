@@ -408,9 +408,11 @@ function PlayerSprite({ parts }) {
     (P.leftArms[parts.larm]   || P.leftArms.default  || '') +
     (P.legs[parts.legs]       || P.legs.other     || '');
   return (
-    <div className="player-sprite" dangerouslySetInnerHTML={{__html:
-      `<svg width="96" height="128" viewBox="0 0 12 16" shape-rendering="crispEdges" style="image-rendering:pixelated">${rects}</svg>`
-    }}/>
+    <svg className="player-sprite" width="96" height="128" viewBox="0 0 12 16"
+         shapeRendering="crispEdges" style={{imageRendering:'pixelated'}}
+         xmlns="http://www.w3.org/2000/svg">
+      <g dangerouslySetInnerHTML={{ __html: rects }}/>
+    </svg>
   );
 }
 
