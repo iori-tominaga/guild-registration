@@ -468,7 +468,7 @@ function AdventureLocations() {
     { icon:'⚔️', label:'そうびの　ま',        desc:'武器・防具を装着して強くなれ', href:'equipment.html' },
     { icon:'📖', label:'モンスター　ずかん',   desc:'討伐した敵を記録する',     href:'monsters.html' },
     { icon:'✨', label:'まほうの　まきもの',   desc:'習得した呪文を管理する',   href:'spells.html' },
-    { icon:'🏟️', label:'バトル　アリーナ',   desc:'強敵に挑め',               href:null },
+    { icon:'⚔️', label:'せんいの　ば',        desc:'モンスターとたたかう',      href:'battle.html' },
   ];
   return (
     <DQWindow title="◆ ぼうけんの　ばしょ ◆">
@@ -496,6 +496,16 @@ function AdventureLocations() {
 function App() {
   const [character, setCharacter] = useState(null);
   const [equipped, setEquipped] = useState({});
+  const goFight = () => {
+    selectSound();
+    fetch('monsters.json')
+      .then(r => r.json())
+      .then(data => {
+        const m = data[Math.floor(Math.random() * data.length)];
+        location.href = `battle.html?monster=${m.id}`;
+      })
+      .catch(() => { location.href = 'battle.html'; });
+  };
   useEffect(() => {
     const sel = '.dq-btn, .location-card';
     function onDown(e) {
@@ -522,12 +532,18 @@ function App() {
     };
   }, []);
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem('codequest:save.character');
-      if (raw) setCharacter(JSON.parse(raw));
-      const eq = localStorage.getItem('codequest:save.equipment');
-      if (eq) setEquipped(JSON.parse(eq));
-    } catch(e) {}
+    function loadSave() {
+      try {
+        const raw = localStorage.getItem('codequest:save.character');
+        if (raw) setCharacter(JSON.parse(raw));
+        const eq = localStorage.getItem('codequest:save.equipment');
+        if (eq) setEquipped(JSON.parse(eq));
+      } catch(e) {}
+    }
+    loadSave();
+    const onShow = () => { if (document.visibilityState === 'visible') loadSave(); };
+    document.addEventListener('visibilitychange', onShow);
+    return () => document.removeEventListener('visibilitychange', onShow);
   }, []);
 
   return (
@@ -540,6 +556,14 @@ function App() {
       </div>
       <div style={{width:'100%',maxWidth:600,display:'flex',flexDirection:'column',gap:20}}>
         <div className="fade-in"><CharacterPanel character={character} equipped={equipped}/></div>
+        {character && (
+          <div className="fade-in" style={{animationDelay:'0.05s',textAlign:'center'}}>
+            <button className="dq-btn" onClick={goFight}
+              style={{fontSize:12,padding:'14px 32px',color:'#ffec40',borderColor:'#ffd700',letterSpacing:2,width:'100%',maxWidth:320}}>
+              ⚔️ いますぐ　たたかう
+            </button>
+          </div>
+        )}
         <div className="fade-in" style={{animationDelay:'0.1s'}}><QuestLog/></div>
         <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations/></div>
         <div style={{textAlign:'center'}}>
