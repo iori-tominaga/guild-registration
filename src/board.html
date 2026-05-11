@@ -593,6 +593,7 @@ function App() {
   }, []);
 
   return (
+    <>
     {showMonsterSelect && <MonsterSelectModal monsters={monsters} onClose={() => setShowMonsterSelect(false)}/>}
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column',alignItems:'center',
       padding:'20px 12px 40px',paddingTop:'max(20px, env(safe-area-inset-top))',position:'relative',zIndex:1}}>
@@ -621,6 +622,7 @@ function App() {
         ADVENTURER'S GUILD © {new Date().getFullYear()}
       </div>
     </div>
+    </>
   );
 }
 
