@@ -1467,6 +1467,22 @@ function App() {
     }
   }, []);
 
+  const saveBattleLog = useCallback((result, mon, gainedXp, gainedGold) => {
+    const entry = {
+      timestamp:   new Date().toISOString(),
+      type:        'battle',
+      result,
+      monsterId:   mon ? mon.id   : 'unknown',
+      monsterName: mon ? mon.name : 'unknown',
+      gainedXp,
+      gainedGold,
+    };
+    const log = (() => { try { return JSON.parse(localStorage.getItem('codequest:save.log') || '[]'); } catch { return []; } })();
+    log.push(entry);
+    if (log.length > 50) log.splice(0, log.length - 50);
+    localStorage.setItem('codequest:save.log', JSON.stringify(log));
+  }, []);
+
   const recalcSpells = useCallback((newLv) => {
     fetch('spells.json')
       .then(r => r.json())
@@ -1555,6 +1571,7 @@ function App() {
     if (Math.random() < 0.5 && !monster.boss) {
       addLog('うまく にげきれた！', 'system');
       await wait(500);
+      saveBattleLog('flee', monster, 0, 0);
       setResult({ type:'flee', monster });
       setMode('result');
     } else {
@@ -1612,6 +1629,7 @@ function App() {
       const newGold = p.gold + monster.gold;
       if (levelUp) { sfx.levelUp(); addLog(`${p.name}はレベルが上がった！`, 'system'); }
       saveProgress(newLv, newXp, newGold, monster.id);
+      saveBattleLog('win', monster, monster.xp, monster.gold);
       if (levelUp) recalcSpells(newLv);
       setTimeout(async () => {
         await wait(700);
@@ -1630,6 +1648,7 @@ function App() {
       const lost    = Math.floor(prev.gold / 10);
       const newGold = Math.max(0, prev.gold - lost);
       saveProgress(prev.lv, prev.xp, newGold, null);
+      saveBattleLog('lose', monster, 0, 0);
       setResult({ type:'defeat', monster, lostGold:lost });
       setMode('result');
       return { ...prev, gold:newGold };
