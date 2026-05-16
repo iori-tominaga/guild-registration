@@ -1,7 +1,7 @@
 # 要件定義書 — 冒険者ギルド登録アプリ
 
-**バージョン**: 6.0.3  
-**最終更新**: 2026-05-11  
+**バージョン**: 7.0.0  
+**最終更新**: 2026-05-16  
 **ステータス**: リリース済み（GitHub Pages）
 
 ---
@@ -41,10 +41,11 @@
 | ページ | ファイル | 役割 |
 |--------|----------|------|
 | 登録ページ | index.html | Quest 01：冒険者登録（5ステップ） |
-| ギルド本部 | board.html | Quest 02：ハブ・ステータス・クエストログ |
+| ギルド本部 | board.html | Quest 02：ハブ・ステータス・クエストログ・戦歴表示 |
 | 装備の間 | equipment.html | Quest 03：装備装着・ステータス強化 |
 | モンスター図鑑 | monsters.html | Quest 04：モンスター一覧・討伐記録 |
 | まほうの まきもの | spells.html | Quest 05：呪文一覧・習得管理 |
+| せんいのば | battle.html | Quest 06：ターン制バトル・戦歴記録（Quest 07） |
 
 ---
 
@@ -101,6 +102,13 @@
 - チェックボックスで完了/未完了を切り替えられる
 - 「✕」ボタンでタスクを削除できる
 - データは localStorage の `codequest:save.questLog` に永続化される
+
+#### 冒険の書（Quest 07 追加）
+- バトルの戦歴を直近10件、時系列逆順で表示する
+- 各エントリに結果アイコン（⚔️勝利 / 💀敗北 / 🏃逃走）・モンスター名・獲得XP/ゴールド・日時を表示する
+- 戦歴が空の場合、古書風の空白メッセージを表示する
+- データは localStorage の `codequest:save.log` から読み込む
+- ページが前面に戻った時（visibilitychange）に自動リロードする
 
 #### キャラクター情報パネル（Quest 05 追加分）
 - 習得呪文が1個以上ある場合、キャラクターパネルに「✨ 習得呪文: N 個」を表示する
@@ -204,6 +212,7 @@
 | `codequest:save.equipment` | Object | 装着中の装備ID（スロットをキーとする） |
 | `codequest:save.bestiary` | Object | `{ defeatedMonsterIds: [] }`（Quest 06 バトルで更新） |
 | `codequest:save.character.spells` | Array | 習得済み呪文IDの配列（spells.html で更新） |
+| `codequest:save.log` | Array | 戦歴ログ（最大50件、古い順）（Quest 07 追加） |
 
 ---
 
@@ -247,3 +256,4 @@
 | 6.0.1 | 2026-05-11 | board.html：モンスター選択モーダル追加・「たたかいの ば」カード追加・「いますぐ たたかう」ボタン追加 |
 | 6.0.2 | 2026-05-11 | board.html：JSX Fragment 欠落による画面真っ暗バグを修正 |
 | 6.0.3 | 2026-05-11 | battle.html：キャラクター/モンスタースプライト非表示バグを修正（SVGデータをtext/babelブロックに直接統合）・りゅうおうのステータス調整（HP300/ATK85/DEF60） |
+| 7.0.0 | 2026-05-16 | Quest 07：戦歴自動記録を追加。battle.htmlで戦闘結果（勝敗・モンスター・XP・ゴールド）をlocalStorageに記録、board.htmlに「冒険の書」パネル追加。PostToolUse/Stopフック設定 |

@@ -34,6 +34,19 @@
         ]
       }
     ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "$d = [Console]::In.ReadToEnd(); try { $j = $d | ConvertFrom-Json; $fp = $j.tool_input.file_path } catch { $fp = 'unknown' }; $ts = Get-Date -Format 'o'; Add-Content -Path 'C:\\Users\\rezer\\Documents\\work\\guild-registration\\.claude\\adventure-log.txt' -Value \"$ts $fp\"; exit 0",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [
@@ -43,6 +56,12 @@
             "command": "$changes = git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' status --porcelain '.claude/' '.github/' 'docs/'; if ($changes) { git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' add '.claude/' '.github/' 'docs/'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' commit -m 'chore: auto-sync config and docs'; git -C 'C:\\Users\\rezer\\Documents\\work\\guild-registration' push origin master }; exit 0",
             "statusMessage": ".claude/ の変更を自動同期中...",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "shell": "powershell",
+            "command": "Write-Output '🔔 ころせんせいの応答が完了しました'; exit 0",
+            "timeout": 5
           }
         ]
       }

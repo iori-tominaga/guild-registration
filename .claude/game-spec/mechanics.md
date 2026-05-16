@@ -45,3 +45,43 @@
 - キャラクターパネルに「習得呪文: X 個」を追加表示する
 - 「魔法の巻物」リンクカードを「冒険の場所」に追加する
 - Quest 05 完了後に解放される
+
+---
+
+## 戦歴システム（Quest 07）
+
+### localStorage キー
+
+```
+キー: 'codequest:save.log'
+型:   Array<BattleLogEntry>  ※最大 50 件、古い順（新しいものは後ろ）
+```
+
+### BattleLogEntry の構造
+
+```json
+{
+  "timestamp":   "string（ISO8601）",
+  "type":        "battle",
+  "result":      "win | lose | flee",
+  "monsterId":   "string",
+  "monsterName": "string",
+  "gainedXp":    "number（win 時のみ正値、他は 0）",
+  "gainedGold":  "number（win 時のみ正値、他は 0）"
+}
+```
+
+### 記録タイミング
+
+| 結果 | 記録箇所 | 備考 |
+|------|---------|------|
+| win  | `monsterDefeated` 内 `setPlayer` コールバック | `saveProgress` 直後 |
+| lose | `playerDefeated` 内 `setPlayer` コールバック | `saveProgress` 直後 |
+| flee | `playerFlee` 内、逃走成功確定直後 | `setResult` 直前 |
+
+### 表示ルール（board.html「冒険の書」セクション）
+
+- 直近 10 件を**時系列逆順**（新しいものが上）で表示
+- 結果アイコン：⚔️ win / 💀 lose / 🏃 flee
+- 戦歴が空なら「まだ たたかいのきろくは ない」と古書風メッセージ
+- 上限 50 件：超えた場合は古いエントリを切り捨て
