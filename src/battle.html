@@ -1330,17 +1330,18 @@ function App() {
 
   const [player, setPlayer] = useState(() => {
     if (!charData) return { name:'???', cls:'せんし', lv:1, hp:30, maxHp:30, mp:10, maxMp:10, atk:5, def:3, gold:0, xp:0 };
-    const bonus = calcEquipBonus(equipData);
-    const maxHp = (charData.cls.stats.守備 || 0) * 2 + (bonus.hp || 0) + 20;
-    const maxMp = (charData.cls.stats.魔力 || 0) * 2 + (bonus.mp || 0) + 10;
+    const bonus    = calcEquipBonus(equipData);
+    const activeCls = charData.promotedCls ?? charData.cls;
+    const maxHp = (activeCls.stats.守備 || 0) * 2 + (bonus.hp || 0) + 20;
+    const maxMp = (activeCls.stats.魔力 || 0) * 2 + (bonus.mp || 0) + 10;
     return {
       name:   charData.name,
-      cls:    charData.cls.label,
+      cls:    activeCls.label,
       lv:     charData.lv  || 1,
       hp:     maxHp, maxHp,
       mp:     maxMp, maxMp,
-      atk:    (charData.cls.stats.力     || 5) + (bonus.atk || 0),
-      def:    (charData.cls.stats.守備   || 3) + (bonus.def || 0),
+      atk:    (activeCls.stats.力   || 5) + (bonus.atk || 0),
+      def:    (activeCls.stats.守備 || 3) + (bonus.def || 0),
       gold:   charData.gold || 0,
       xp:     charData.xp  || 0,
     };

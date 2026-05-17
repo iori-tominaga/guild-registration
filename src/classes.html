@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>しょくぎょう しんか - 冒険者ギルド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  width: 100%; min-height: 100vh;
+  background: #000810;
+  font-family: 'Press Start 2P', monospace;
+  color: #fff; overflow-x: hidden;
+}
+.stars {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 40% 90%, #fff 0%, transparent 100%),
+    radial-gradient(1px 1px at 75% 10%, #fff 0%, transparent 100%);
+  pointer-events: none; z-index: 0;
+}
+.dq-window {
+  background: #000060;
+  border: 4px solid #c8c8c8;
+  box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px #000, 6px 6px 0 #000;
+  position: relative; margin-bottom: 16px;
+}
+.dq-window::before {
+  content: ''; position: absolute; inset: 3px;
+  border: 2px solid #4848b8; pointer-events: none;
+}
+.dq-title-bar {
+  background: #000060; border-bottom: 2px solid #c8c8c8;
+  padding: 10px 16px; text-align: center;
+  letter-spacing: 2px; font-size: 10px; color: #ffec40; text-shadow: 2px 2px #000;
+}
+.dq-content { padding: 16px; }
+.dq-btn {
+  background: #000060; border: 3px solid #c8c8c8;
+  color: #fff; font-family: 'Press Start 2P', monospace;
+  font-size: 10px; padding: 10px 20px; cursor: pointer;
+  letter-spacing: 1px; box-shadow: 3px 3px 0 #000; min-height: 44px;
+  user-select: none; touch-action: manipulation;
+}
+.dq-btn:hover { background: #2020a0; color: #ffec40; border-color: #ffec40; }
+.dq-btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 #000; }
+.dq-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 #000; }
+:focus-visible { outline: 3px solid #ffec40; outline-offset: 2px; }
+
+/* Evolution map card */
+.evo-row {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 8px; border-bottom: 1px dotted #2a2a80;
+}
+.evo-row:last-child { border-bottom: none; }
+.evo-row.current-row { background: rgba(255,236,64,0.06); border-radius: 2px; }
+.evo-box {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px; width: 72px; flex-shrink: 0;
+}
+.evo-icon { font-size: 20px; line-height: 1; }
+.evo-icon.locked { filter: brightness(0); opacity: 0.25; }
+.evo-label { font-size: 7px; color: #c0d8ff; letter-spacing: 1px; text-align: center; }
+.evo-label.locked { color: #303060; }
+.evo-label.promoted { color: #ffd700; }
+.evo-arrow { font-size: 14px; color: #404080; flex-shrink: 0; }
+.evo-arrow.current { color: #ffec40; }
+.evo-badge {
+  font-size: 6px; padding: 2px 5px; border-radius: 2px; letter-spacing: 1px;
+  background: #ffd700; color: #000; margin-top: 2px;
+}
+.evo-badge.promoted-badge { background: #ff8c00; }
+
+/* Class switch grid */
+.cls-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-top: 12px;
+}
+.cls-btn {
+  background: #00002a; border: 2px solid #303080;
+  padding: 10px 4px; cursor: pointer; text-align: center;
+  font-family: 'Press Start 2P', monospace; font-size: 7px;
+  color: #a0c0ff; transition: border-color 0.1s;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  min-height: 60px; justify-content: center;
+  user-select: none; touch-action: manipulation;
+}
+.cls-btn:hover { border-color: #ffec40; color: #ffec40; }
+.cls-btn.active { border-color: #ffd700; color: #ffd700; background: rgba(255,215,0,0.08); }
+.cls-btn:focus-visible { outline: 2px solid #ffec40; outline-offset: -2px; }
+
+/* Promote section */
+.promote-box {
+  text-align: center; padding: 12px 8px;
+}
+.lv-progress {
+  height: 8px; background: #000030; border: 2px solid #404080;
+  overflow: hidden; margin: 8px 0 12px;
+}
+.lv-fill { height: 100%; background: linear-gradient(90deg, #40b0ff, #80d0ff); transition: width 0.6s; }
+
+.fade-in { animation: fadeIn 0.3s ease-out both; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useCallback } = React;
+
+const CLASSES = [
+  { id:'warrior',  label:'せんし',      icon:'⚔️',  stats:{力:90, 素早:50, 守備:80, 魔力:20, 回復:10} },
+  { id:'mage',     label:'まほうつかい', icon:'🔮',  stats:{力:20, 素早:70, 守備:20, 魔力:100,回復:30} },
+  { id:'priest',   label:'そうりょ',    icon:'✨',  stats:{力:40, 素早:50, 守備:60, 魔力:60, 回復:100} },
+  { id:'thief',    label:'とうぞく',    icon:'🗡️',  stats:{力:60, 素早:100,守備:40, 魔力:30, 回復:20} },
+  { id:'merchant', label:'しょうにん',  icon:'💰',  stats:{力:50, 素早:60, 守備:50, 魔力:40, 回復:40} },
+  { id:'martial',  label:'ぶとうか',    icon:'👊',  stats:{力:80, 素早:80, 守備:70, 魔力:10, 回復:20} },
+  { id:'bard',     label:'うたうたい',  icon:'🎵',  stats:{力:30, 素早:70, 守備:30, 魔力:70, 回復:60} },
+  { id:'sage',     label:'けんじゃ',    icon:'📖',  stats:{力:50, 素早:60, 守備:50, 魔力:90, 回復:80} },
+  { id:'other',    label:'？',          icon:'❓',  stats:{力:50, 素早:50, 守備:50, 魔力:50, 回復:50} },
+];
+
+const EVOLUTIONS = {
+  warrior:  { label:'勇者',       icon:'👑', stats:{力:110,素早:60, 守備:98, 魔力:28, 回復:18} },
+  mage:     { label:'大魔導師',   icon:'💫', stats:{力:27, 素早:83, 守備:27, 魔力:125,回復:40} },
+  priest:   { label:'聖職者',    icon:'🌟', stats:{力:47, 素早:58, 守備:73, 魔力:73, 回復:125} },
+  thief:    { label:'忍',         icon:'🌙', stats:{力:73, 素早:125,守備:48, 魔力:37, 回復:27} },
+  merchant: { label:'大商人',     icon:'💎', stats:{力:60, 素早:75, 守備:60, 魔力:50, 回復:50} },
+  martial:  { label:'チャンピオン',icon:'🏆', stats:{力:103,素早:103,守備:85, 魔力:17, 回復:28} },
+  bard:     { label:'歌姫',       icon:'🎶', stats:{力:37, 素早:90, 守備:37, 魔力:90, 回復:73} },
+  sage:     { label:'大賢者',     icon:'📚', stats:{力:58, 素早:73, 守備:58, 魔力:113,回復:103} },
+  other:    { label:'転生者',     icon:'🌈', stats:{力:85, 素早:85, 守備:85, 魔力:85, 回復:85} },
+};
+
+const CHAR_KEY    = 'codequest:save.character';
+const UNLOCK_KEY  = 'codequest:save.evolution.unlocks';
+
+function loadChar()    { try { return JSON.parse(localStorage.getItem(CHAR_KEY)   || 'null'); } catch { return null; } }
+function loadUnlocks() { try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]');   } catch { return []; } }
+
+let audioCtx = null;
+const A = () => (audioCtx ||= new (window.AudioContext || window.webkitAudioContext)());
+function beep(freq=440, dur=0.08, type='square', vol=0.12) {
+  try {
+    const c = A(), o = c.createOscillator(), g = c.createGain();
+    o.connect(g); g.connect(c.destination);
+    o.type = type; o.frequency.setValueAtTime(freq, c.currentTime);
+    g.gain.setValueAtTime(vol, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+    o.start(); o.stop(c.currentTime + dur);
+  } catch(e) {}
+}
+const selectSound = () => { [523,659].forEach((f,i) => setTimeout(() => beep(f,0.08,'square',0.15), i*60)); };
+const cancelSound = () => beep(200, 0.12, 'sawtooth', 0.15);
+const evolveSound = () => [523,659,784,1047,1319].forEach((f,i) => setTimeout(() => beep(f,0.18,'square',0.2), i*120));
+
+// ─── Evolution Map ────────────────────────────────────────────────
+function EvolutionMap({ char, unlocks }) {
+  const currentBaseId   = char?.cls?.id;
+  const isPromoted      = !!char?.promotedCls;
+  const promotedBaseId  = isPromoted ? currentBaseId : null;
+
+  return (
+    <div className="dq-window fade-in">
+      <div className="dq-title-bar">◆ しんかのけいふ ◆</div>
+      <div className="dq-content" style={{padding:'12px 16px'}}>
+        {CLASSES.map(cls => {
+          const evo        = EVOLUTIONS[cls.id];
+          const isCurrent  = cls.id === currentBaseId;
+          const isUnlocked = unlocks.includes(cls.id) || (isCurrent && isPromoted);
+          const isVisible  = isCurrent || isUnlocked;
+
+          return (
+            <div key={cls.id} className={`evo-row${isCurrent ? ' current-row' : ''}`}>
+              {/* Base class */}
+              <div className="evo-box">
+                <span className="evo-icon">{cls.icon}</span>
+                <span className="evo-label" style={isCurrent ? {color:'#ffec40'} : {}}>
+                  {cls.label}
+                </span>
+                {isCurrent && !isPromoted && (
+                  <span className="evo-badge">いま</span>
+                )}
+                {isCurrent && isPromoted && (
+                  <span className="evo-badge promoted-badge">しんか済</span>
+                )}
+              </div>
+
+              {/* Arrow */}
+              <span className={`evo-arrow${isCurrent ? ' current' : ''}`}>→</span>
+
+              {/* Evolved class */}
+              <div className="evo-box">
+                <span className={`evo-icon${isVisible ? '' : ' locked'}`}>{evo.icon}</span>
+                <span className={`evo-label${isVisible ? (isUnlocked ? ' promoted' : '') : ' locked'}`}>
+                  {isVisible ? evo.label : '？？？'}
+                </span>
+                {isUnlocked && (
+                  <span className="evo-badge promoted-badge">かいほう</span>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Promote Section ──────────────────────────────────────────────
+function PromoteSection({ char, unlocks, onPromote }) {
+  if (!char) return null;
+
+  const lv          = char.lv || 1;
+  const baseId      = char.cls?.id;
+  const isPromoted  = !!char.promotedCls;
+  const alreadyDone = unlocks.includes(baseId);
+  const canPromote  = lv >= 10 && !isPromoted;
+  const evo         = EVOLUTIONS[baseId];
+
+  if (isPromoted) {
+    return (
+      <div className="dq-window fade-in">
+        <div className="dq-title-bar">◆ しんかじょうたい ◆</div>
+        <div className="dq-content promote-box">
+          <div style={{fontSize:24,marginBottom:8}}>{evo.icon}</div>
+          <div style={{fontSize:11,color:'#ffd700',marginBottom:6,letterSpacing:2}}>{evo.label}</div>
+          <div style={{fontSize:8,color:'#a0c0ff',letterSpacing:1}}>
+            {char.name} は すでに しんかしています
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="dq-window fade-in">
+      <div className="dq-title-bar">◆ しんかする ◆</div>
+      <div className="dq-content promote-box">
+        <div style={{fontSize:8,color:'#a0c0ff',marginBottom:10,letterSpacing:1}}>
+          レベル10で <span style={{color:'#ffec40'}}>{evo.label}</span> に しんかできます
+        </div>
+        <div style={{fontSize:7,color:'#606090',marginBottom:4}}>Lv {lv} / 10</div>
+        <div className="lv-progress">
+          <div className="lv-fill" style={{width:`${Math.min(lv/10*100,100)}%`}}/>
+        </div>
+        <button
+          className="dq-btn"
+          disabled={!canPromote}
+          onClick={onPromote}
+          style={{fontSize:11,padding:'12px 24px',color: canPromote ? '#ffec40' : '#fff',
+            borderColor: canPromote ? '#ffd700' : '#c8c8c8', letterSpacing:2}}
+        >
+          {canPromote ? `⬆ ${evo.label} に しんかする` : 'レベルが　たりない…'}
+        </button>
+        {alreadyDone && !isPromoted && (
+          <div style={{marginTop:8,fontSize:7,color:'#606090'}}>
+            ※ しょくぎょうをかえると しんかが リセットされます
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── Switch Class Section ─────────────────────────────────────────
+function SwitchClassSection({ char, onSwitch }) {
+  const [confirm, setConfirm] = useState(null);
+  if (!char) return null;
+  const currentId = char.cls?.id;
+
+  function handleClick(cls) {
+    if (cls.id === currentId && !char.promotedCls) { cancelSound(); return; }
+    selectSound();
+    setConfirm(cls);
+  }
+
+  function doSwitch() {
+    selectSound();
+    onSwitch(confirm);
+    setConfirm(null);
+  }
+
+  return (
+    <div className="dq-window fade-in">
+      <div className="dq-title-bar">◆ しょくぎょうを　かえる ◆</div>
+      <div className="dq-content">
+        <div style={{fontSize:7,color:'#808090',letterSpacing:1,marginBottom:4,lineHeight:2}}>
+          第一職業にのみ変更できます。<br/>
+          <span style={{color:'#ff8080'}}>進化状態はリセットされます。</span>
+        </div>
+        <div className="cls-grid">
+          {CLASSES.map(cls => (
+            <div
+              key={cls.id}
+              className={`cls-btn${cls.id === currentId && !char.promotedCls ? ' active' : ''}`}
+              onClick={() => handleClick(cls)}
+              tabIndex={0}
+              onKeyDown={e => { if(e.key==='Enter') handleClick(cls); }}
+            >
+              <span style={{fontSize:16}}>{cls.icon}</span>
+              <span>{cls.label}</span>
+            </div>
+          ))}
+        </div>
+
+        {confirm && (
+          <div style={{
+            marginTop:14, padding:12, background:'#00001a',
+            border:'2px solid #ffd700', textAlign:'center'
+          }}>
+            <div style={{fontSize:8,color:'#ffec40',marginBottom:8,letterSpacing:1}}>
+              {confirm.icon} {confirm.label} に　かえますか？
+            </div>
+            {char.promotedCls && (
+              <div style={{fontSize:7,color:'#ff8080',marginBottom:8}}>
+                ※ 進化状態がリセットされます
+              </div>
+            )}
+            <div style={{display:'flex',gap:8,justifyContent:'center'}}>
+              <button className="dq-btn" onClick={doSwitch}
+                style={{fontSize:9,padding:'8px 16px',color:'#ffec40',borderColor:'#ffd700'}}>
+                はい
+              </button>
+              <button className="dq-btn" onClick={() => { cancelSound(); setConfirm(null); }}
+                style={{fontSize:9,padding:'8px 16px'}}>
+                いいえ
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── App ──────────────────────────────────────────────────────────
+function App() {
+  const [char,    setChar]    = useState(loadChar);
+  const [unlocks, setUnlocks] = useState(loadUnlocks);
+
+  useEffect(() => {
+    if (!char) { location.href = 'index.html'; }
+  }, []);
+
+  const handlePromote = useCallback(() => {
+    if (!char) return;
+    const evo = EVOLUTIONS[char.cls.id];
+    if (!evo) return;
+    evolveSound();
+    const newChar = { ...char, promotedCls: { ...evo, id: char.cls.id + '_evo' } };
+    localStorage.setItem(CHAR_KEY, JSON.stringify(newChar));
+    const newUnlocks = unlocks.includes(char.cls.id) ? unlocks : [...unlocks, char.cls.id];
+    localStorage.setItem(UNLOCK_KEY, JSON.stringify(newUnlocks));
+    setChar(newChar);
+    setUnlocks(newUnlocks);
+  }, [char, unlocks]);
+
+  const handleSwitch = useCallback((cls) => {
+    if (!char) return;
+    const newChar = { ...char, cls, promotedCls: null };
+    localStorage.setItem(CHAR_KEY, JSON.stringify(newChar));
+    setChar(newChar);
+  }, [char]);
+
+  if (!char) return null;
+
+  const activeCls = char.promotedCls ?? char.cls;
+
+  return (
+    <div style={{
+      minHeight:'100vh', display:'flex', flexDirection:'column', alignItems:'center',
+      padding:'20px 12px 40px',
+      paddingTop:'max(20px, env(safe-area-inset-top))',
+      position:'relative', zIndex:1,
+    }}>
+      {/* Header */}
+      <div style={{textAlign:'center',marginBottom:20}}>
+        <div style={{fontSize:10,color:'#4040c0',letterSpacing:4,marginBottom:6}}>⬆ ⬆ ⬆</div>
+        <div style={{fontSize:14,color:'#ffec40',letterSpacing:3,textShadow:'2px 2px #000, 0 0 20px rgba(255,220,0,0.4)',marginBottom:4}}>
+          しょくぎょう　しんか
+        </div>
+        <div style={{fontSize:8,color:'#8080c0',letterSpacing:2}}>CLASS EVOLUTION</div>
+      </div>
+
+      <div style={{width:'100%',maxWidth:520,display:'flex',flexDirection:'column',gap:0}}>
+        {/* Character info */}
+        <div className="dq-window fade-in">
+          <div className="dq-title-bar">◆ ぼうけんしゃ ◆</div>
+          <div className="dq-content" style={{display:'flex',alignItems:'center',gap:12}}>
+            <span style={{fontSize:24}}>{activeCls.icon}</span>
+            <div>
+              <div style={{fontSize:10,color:'#ffec40',letterSpacing:1,marginBottom:4}}>{char.name}</div>
+              <div style={{fontSize:8,color:'#a0c0ff'}}>
+                {char.promotedCls ? activeCls.label : char.cls.label}
+                {char.promotedCls && (
+                  <span style={{marginLeft:6,fontSize:7,color:'#ffd700'}}>[しんか済]</span>
+                )}
+              </div>
+            </div>
+            <div style={{marginLeft:'auto',textAlign:'right'}}>
+              <div style={{fontSize:7,color:'#606090'}}>Lv</div>
+              <div style={{fontSize:16,color:'#ffec40'}}>{char.lv || 1}</div>
+            </div>
+          </div>
+        </div>
+
+        <EvolutionMap  char={char} unlocks={unlocks} />
+        <PromoteSection char={char} unlocks={unlocks} onPromote={handlePromote} />
+        <SwitchClassSection char={char} onSwitch={handleSwitch} />
+
+        <div style={{textAlign:'center',marginTop:8}}>
+          <a href="board.html"
+            style={{fontSize:8,color:'#4040a0',letterSpacing:2}}
+            onClick={() => cancelSound()}>
+            ← ギルド本部へもどる
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
