@@ -928,6 +928,16 @@ const DQ_PARTS = { heads: _heads, bodies: _bodies, rightArms: _rightArms, leftAr
 // ─────────────────────────────────────────────────────────────────
 const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
+const CLASS_IDS = ['warrior','mage','priest','thief','merchant','martial','bard','sage','other'];
+function getClassLevels(char) {
+  const base = {};
+  CLASS_IDS.forEach(id => { base[id] = { lv: 1, xp: 0 }; });
+  if (!char) return base;
+  if (char.classLevels) return { ...base, ...char.classLevels };
+  if (char.cls?.id) base[char.cls.id] = { lv: char.lv || 1, xp: char.xp || 0 };
+  return base;
+}
+
 // ─── Audio ───────────────────────────────────────────────────────
 let audioCtx = null;
 const A = () => (audioCtx ||= new (window.AudioContext || window.webkitAudioContext)());
@@ -1330,20 +1340,23 @@ function App() {
 
   const [player, setPlayer] = useState(() => {
     if (!charData) return { name:'???', cls:'せんし', lv:1, hp:30, maxHp:30, mp:10, maxMp:10, atk:5, def:3, gold:0, xp:0 };
-    const bonus    = calcEquipBonus(equipData);
+    const bonus     = calcEquipBonus(equipData);
     const activeCls = charData.promotedCls ?? charData.cls;
+    const clsLevels = getClassLevels(charData);
+    const clsLv     = clsLevels[charData.cls.id] || { lv: 1, xp: 0 };
     const maxHp = (activeCls.stats.守備 || 0) * 2 + (bonus.hp || 0) + 20;
     const maxMp = (activeCls.stats.魔力 || 0) * 2 + (bonus.mp || 0) + 10;
     return {
       name:   charData.name,
       cls:    activeCls.label,
-      lv:     charData.lv  || 1,
+      clsId:  charData.cls.id,
+      lv:     clsLv.lv,
       hp:     maxHp, maxHp,
       mp:     maxMp, maxMp,
       atk:    (activeCls.stats.力   || 5) + (bonus.atk || 0),
       def:    (activeCls.stats.守備 || 3) + (bonus.def || 0),
       gold:   charData.gold || 0,
-      xp:     charData.xp  || 0,
+      xp:     clsLv.xp,
     };
   });
 
@@ -1460,7 +1473,9 @@ function App() {
   const saveProgress = useCallback((lv, xp, gold, defeatedMonsterId) => {
     const stored = (() => { try { return JSON.parse(localStorage.getItem('codequest:save.character') || 'null'); } catch { return null; } })();
     if (!stored) return;
-    localStorage.setItem('codequest:save.character', JSON.stringify({ ...stored, lv, xp, gold }));
+    const classLevels = getClassLevels(stored);
+    if (stored.cls?.id) classLevels[stored.cls.id] = { lv, xp };
+    localStorage.setItem('codequest:save.character', JSON.stringify({ ...stored, lv, xp, gold, classLevels }));
     if (defeatedMonsterId) {
       const b = (() => { try { return JSON.parse(localStorage.getItem('codequest:save.bestiary') || '{"defeatedMonsterIds":[]}'); } catch { return {defeatedMonsterIds:[]}; } })();
       if (!b.defeatedMonsterIds.includes(defeatedMonsterId)) b.defeatedMonsterIds.push(defeatedMonsterId);

@@ -146,11 +146,22 @@ const EVOLUTIONS = {
   other:    { label:'転生者',     icon:'🌈', stats:{力:85, 素早:85, 守備:85, 魔力:85, 回復:85} },
 };
 
-const CHAR_KEY    = 'codequest:save.character';
-const UNLOCK_KEY  = 'codequest:save.evolution.unlocks';
+const CHAR_KEY   = 'codequest:save.character';
+const UNLOCK_KEY = 'codequest:save.evolution.unlocks';
+const CLASS_IDS  = ['warrior','mage','priest','thief','merchant','martial','bard','sage','other'];
 
 function loadChar()    { try { return JSON.parse(localStorage.getItem(CHAR_KEY)   || 'null'); } catch { return null; } }
 function loadUnlocks() { try { return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]');   } catch { return []; } }
+
+// 職業ごとの lv/xp を返す。旧スキーマは自動マイグレーション
+function getClassLevels(char) {
+  const base = {};
+  CLASS_IDS.forEach(id => { base[id] = { lv: 1, xp: 0 }; });
+  if (!char) return base;
+  if (char.classLevels) return { ...base, ...char.classLevels };
+  if (char.cls?.id) base[char.cls.id] = { lv: char.lv || 1, xp: char.xp || 0 };
+  return base;
+}
 
 let audioCtx = null;
 const A = () => (audioCtx ||= new (window.AudioContext || window.webkitAudioContext)());
@@ -170,9 +181,9 @@ const evolveSound = () => [523,659,784,1047,1319].forEach((f,i) => setTimeout(()
 
 // ─── Evolution Map ────────────────────────────────────────────────
 function EvolutionMap({ char, unlocks }) {
-  const currentBaseId   = char?.cls?.id;
-  const isPromoted      = !!char?.promotedCls;
-  const promotedBaseId  = isPromoted ? currentBaseId : null;
+  const currentBaseId = char?.cls?.id;
+  const isPromoted    = !!char?.promotedCls;
+  const classLevels   = getClassLevels(char);
 
   return (
     <div className="dq-window fade-in">
@@ -181,8 +192,8 @@ function EvolutionMap({ char, unlocks }) {
         {CLASSES.map(cls => {
           const evo        = EVOLUTIONS[cls.id];
           const isCurrent  = cls.id === currentBaseId;
-          const isUnlocked = unlocks.includes(cls.id) || (isCurrent && isPromoted);
-          const isVisible  = isCurrent || isUnlocked;
+          const isUnlocked = unlocks.includes(cls.id);
+          const clsLv      = classLevels[cls.id]?.lv || 1;
 
           return (
             <div key={cls.id} className={`evo-row${isCurrent ? ' current-row' : ''}`}>
@@ -192,25 +203,29 @@ function EvolutionMap({ char, unlocks }) {
                 <span className="evo-label" style={isCurrent ? {color:'#ffec40'} : {}}>
                   {cls.label}
                 </span>
-                {isCurrent && !isPromoted && (
-                  <span className="evo-badge">いま</span>
-                )}
-                {isCurrent && isPromoted && (
-                  <span className="evo-badge promoted-badge">しんか済</span>
-                )}
+                <span style={{fontSize:6,color: isCurrent ? '#a0c0ff' : '#404060'}}>
+                  Lv.{clsLv}
+                </span>
+                {isCurrent && !isPromoted && <span className="evo-badge">いま</span>}
+                {isCurrent && isPromoted  && <span className="evo-badge promoted-badge">しんか済</span>}
               </div>
 
               {/* Arrow */}
               <span className={`evo-arrow${isCurrent ? ' current' : ''}`}>→</span>
 
-              {/* Evolved class */}
+              {/* Evolved class — 解放済みのみ表示 */}
               <div className="evo-box">
-                <span className={`evo-icon${isVisible ? '' : ' locked'}`}>{evo.icon}</span>
-                <span className={`evo-label${isVisible ? (isUnlocked ? ' promoted' : '') : ' locked'}`}>
-                  {isVisible ? evo.label : '？？？'}
-                </span>
-                {isUnlocked && (
-                  <span className="evo-badge promoted-badge">かいほう</span>
+                {isUnlocked ? (
+                  <>
+                    <span className="evo-icon">{evo.icon}</span>
+                    <span className="evo-label promoted">{evo.label}</span>
+                    <span className="evo-badge promoted-badge">かいほう</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{fontSize:18,opacity:0.25,lineHeight:1}}>🔒</span>
+                    <span className="evo-label locked">？？？</span>
+                  </>
                 )}
               </div>
             </div>
@@ -225,10 +240,11 @@ function EvolutionMap({ char, unlocks }) {
 function PromoteSection({ char, unlocks, onPromote }) {
   if (!char) return null;
 
-  const lv          = char.lv || 1;
   const baseId      = char.cls?.id;
   const isPromoted  = !!char.promotedCls;
   const alreadyDone = unlocks.includes(baseId);
+  const classLevels = getClassLevels(char);
+  const lv          = classLevels[baseId]?.lv || 1;
   const canPromote  = lv >= 10 && !isPromoted;
   const evo         = EVOLUTIONS[baseId];
 
@@ -362,7 +378,8 @@ function App() {
     const evo = EVOLUTIONS[char.cls.id];
     if (!evo) return;
     evolveSound();
-    const newChar = { ...char, promotedCls: { ...evo, id: char.cls.id + '_evo' } };
+    const classLevels = getClassLevels(char);
+    const newChar = { ...char, promotedCls: { ...evo, id: char.cls.id + '_evo' }, classLevels };
     localStorage.setItem(CHAR_KEY, JSON.stringify(newChar));
     const newUnlocks = unlocks.includes(char.cls.id) ? unlocks : [...unlocks, char.cls.id];
     localStorage.setItem(UNLOCK_KEY, JSON.stringify(newUnlocks));
@@ -372,7 +389,8 @@ function App() {
 
   const handleSwitch = useCallback((cls) => {
     if (!char) return;
-    const newChar = { ...char, cls, promotedCls: null };
+    const classLevels = getClassLevels(char);
+    const newChar = { ...char, cls, promotedCls: null, classLevels };
     localStorage.setItem(CHAR_KEY, JSON.stringify(newChar));
     setChar(newChar);
   }, [char]);

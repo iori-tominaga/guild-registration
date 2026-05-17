@@ -313,6 +313,15 @@ function calcEquipBonus(equipped) {
 }
 
 // ─── Character Panel ─────────────────────────────────────────────
+const CLASS_IDS = ['warrior','mage','priest','thief','merchant','martial','bard','sage','other'];
+function getClassLevels(char) {
+  const base = {};
+  CLASS_IDS.forEach(id => { base[id] = { lv: 1, xp: 0 }; });
+  if (!char) return base;
+  if (char.classLevels) return { ...base, ...char.classLevels };
+  if (char.cls?.id) base[char.cls.id] = { lv: char.lv || 1, xp: char.xp || 0 };
+  return base;
+}
 const SPELLS_KEY = 'codequest:save.character.spells';
 function loadSpellCount() {
   try { return (JSON.parse(localStorage.getItem(SPELLS_KEY) || '[]')).length; } catch(e) { return 0; }
@@ -351,7 +360,7 @@ function CharacterPanel({ character, equipped }) {
             <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
               <span style={{fontSize:8,color:'#a0c0ff'}}>ランク</span>
               <span style={{fontSize:13,color:'#ffd700'}}>{character.rank}</span>
-              <span style={{fontSize:8,color:'#a0c0ff',marginLeft:8}}>Lv.1</span>
+              <span style={{fontSize:8,color:'#a0c0ff',marginLeft:8}}>Lv.{getClassLevels(character)[character.cls?.id]?.lv ?? 1}</span>
             </div>
             {spellCount > 0 && (
               <div style={{marginTop:6,fontSize:7,color:'#a0c0ff'}}>
