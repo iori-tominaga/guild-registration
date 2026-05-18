@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伝承の間 — 冒険者ギルド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+    overflow-x: hidden;
+  }
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 90%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 75% 10%, #fff 0%, transparent 100%);
+    pointer-events: none; z-index: 0;
+  }
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow: inset 0 0 0 2px #ffffff, 0 0 0 2px #000, 6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+  }
+  .dq-window::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 2px solid #4848b8;
+    pointer-events: none;
+  }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
+  .dq-content { padding: 20px; }
+  .dq-btn {
+    background: #000060;
+    border: 3px solid #c8c8c8;
+    outline: 2px solid #000;
+    color: #fff;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    padding: 12px 28px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: transform 0.05s;
+    box-shadow: 3px 3px 0 #000;
+    min-height: 44px;
+  }
+  .dq-btn:hover { background: #2020a0; color: #ffec40; border-color: #ffec40; }
+  .dq-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 #000; }
+
+  /* ─── Parchment style ─── */
+  .parchment {
+    background: linear-gradient(135deg, #1a0e00 0%, #120a00 50%, #1a0e00 100%);
+    border: 3px solid #8b6914;
+    box-shadow: inset 0 0 20px rgba(139,105,20,0.3), 0 0 0 1px #5a4a10;
+    position: relative;
+  }
+  .parchment::before {
+    content: '';
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(255,200,80,0.15);
+    pointer-events: none;
+  }
+  .parchment-text {
+    color: #d4a843;
+    line-height: 2.2;
+    font-size: 9px;
+    letter-spacing: 0.5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  }
+  .parchment-title {
+    color: #ffd700;
+    font-size: 10px;
+    text-shadow: 0 0 8px rgba(255,215,0,0.5), 2px 2px #000;
+    letter-spacing: 2px;
+  }
+
+  /* ─── Page layout ─── */
+  #root { position: relative; z-index: 1; }
+  .page-container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 16px;
+    padding-bottom: 40px;
+  }
+  .page-header {
+    text-align: center;
+    padding: 24px 16px 16px;
+    color: #ffec40;
+    font-size: 13px;
+    text-shadow: 2px 2px #000, 0 0 12px rgba(255,236,64,0.4);
+    letter-spacing: 3px;
+  }
+  .page-subtitle {
+    text-align: center;
+    color: #a0c0ff;
+    font-size: 7px;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    padding: 0 16px;
+    line-height: 2;
+  }
+  .section-gap { height: 24px; }
+
+  /* ─── NPC cards ─── */
+  .npc-card {
+    margin-bottom: 16px;
+    padding: 20px;
+    border-radius: 0;
+  }
+  .npc-portrait {
+    font-size: 40px;
+    text-align: center;
+    margin-bottom: 12px;
+    display: block;
+    filter: drop-shadow(0 0 8px rgba(255,215,0,0.4));
+  }
+  .npc-name {
+    text-align: center;
+    margin-bottom: 4px;
+  }
+  .npc-title {
+    text-align: center;
+    color: #a0c0ff;
+    font-size: 7px;
+    letter-spacing: 1px;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(139,105,20,0.5);
+  }
+  .npc-quote-wrap {
+    background: rgba(0,0,0,0.4);
+    border-left: 3px solid #ffd700;
+    padding: 10px 14px;
+    margin-bottom: 14px;
+  }
+  .npc-quote {
+    color: #ffec40;
+    font-size: 8px;
+    line-height: 2.2;
+    font-style: italic;
+  }
+  .npc-secret {
+    margin-top: 12px;
+    padding: 8px 12px;
+    background: rgba(80,0,80,0.3);
+    border: 1px solid rgba(200,0,200,0.2);
+    font-size: 7px;
+    color: #c080ff;
+    line-height: 2;
+    text-align: center;
+    letter-spacing: 1px;
+  }
+
+  /* ─── Monster accordion ─── */
+  .monster-item {
+    margin-bottom: 8px;
+    border: 2px solid rgba(139,105,20,0.4);
+  }
+  .monster-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    background: rgba(20,12,0,0.8);
+    transition: background 0.15s;
+    user-select: none;
+    min-height: 44px;
+  }
+  .monster-header:hover { background: rgba(40,24,0,0.9); }
+  .monster-icon { font-size: 20px; flex-shrink: 0; }
+  .monster-name-lv { flex: 1; }
+  .monster-mname { font-size: 9px; color: #ffd700; }
+  .monster-type { font-size: 7px; color: #a0c0ff; margin-top: 4px; }
+  .monster-toggle { font-size: 9px; color: #8b6914; transition: transform 0.2s; }
+  .monster-toggle.open { transform: rotate(180deg); }
+  .monster-lore {
+    padding: 16px;
+    background: rgba(10,6,0,0.9);
+    border-top: 1px solid rgba(139,105,20,0.3);
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  /* ─── Divider ─── */
+  .ancient-divider {
+    text-align: center;
+    color: #8b6914;
+    font-size: 9px;
+    letter-spacing: 4px;
+    margin: 20px 0;
+    opacity: 0.8;
+  }
+
+  /* ─── Back button ─── */
+  .back-area {
+    text-align: center;
+    padding: 20px 0 8px;
+  }
+
+  @media (max-width: 520px) {
+    .page-header { font-size: 11px; }
+    .parchment-text { font-size: 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Sound ───────────────────────────────────────────────────────
+const ctx = new (window.AudioContext || window.webkitAudioContext)();
+function beep(freq=440, dur=0.08, vol=0.15, type='square') {
+  try {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    o.start(); o.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+const cursorSound = () => beep(300, 0.05, 0.1);
+const selectSound = () => { beep(440, 0.08, 0.15); setTimeout(() => beep(660, 0.08, 0.12), 80); };
+
+// ─── Typewriter hook ──────────────────────────────────────────────
+function useTypewriter(text, speed=28) {
+  const [displayed, setDisplayed] = useState('');
+  useEffect(() => {
+    setDisplayed('');
+    if (!text) return;
+    let i = 0;
+    const id = setInterval(() => {
+      i++;
+      setDisplayed(text.slice(0, i));
+      if (i >= text.length) clearInterval(id);
+    }, speed);
+    return () => clearInterval(id);
+  }, [text, speed]);
+  return displayed;
+}
+
+// ─── DQ Window ───────────────────────────────────────────────────
+function DQWindow({ title, children, style }) {
+  return (
+    <div className="dq-window" style={style}>
+      {title && <div className="dq-title-bar">{title}</div>}
+      <div className="dq-content">{children}</div>
+    </div>
+  );
+}
+
+// ─── NPC Data ────────────────────────────────────────────────────
+const NPCS = [
+  {
+    id: 'guild-master',
+    icon: '⚔️',
+    name: 'ガルドゥス・クロイツ',
+    title: 'ギルドマスター・鉄壁の守護者',
+    quote: '冒険とは、生還してこそ意味をなすものなり。帰らぬ者の名は、この手で石板に刻んできた。',
+    lore: 'かつては大陸最強と謳われた剣士なりしが、三十年前の「黄昏の遠征」において右腕を失いし後、剣を折り、ギルドマスターの座についたと伝えられる。その眼は戦場の血煙を幾度も潜り抜けた者のみが持つ静けさを宿し、新米冒険者の心の揺らぎすら見抜くと言われる。冒険者の命を何よりも重んじ、無謀な依頼を持ち込む貴族には「この命を道具と思うなら、他所へ行け」と一喝したとの逸話も多い。齢六十を超えた今もなお、左腕一本で並の剣士を投げ飛ばす膂力を保つ。ギルド本部の奥に飾られた折れた剣は、彼が守れなかった仲間たちへの誓いの象徴なりと、古参の冒険者たちは静かに語り継ぐ。',
+    secret: false,
+  },
+  {
+    id: 'receptionist',
+    icon: '📜',
+    name: 'ミレイア・フォンターヌ',
+    title: '主任受付係・依頼の語り部',
+    quote: 'ご依頼の内容、しかと承りました。……ただし、あなたの命が惜しければ、まず装備を整えることをお勧めしますわ。',
+    lore: 'ギルド受付歴十八年を誇る熟練の語り部にして、ギルド内の生きた記録庫なりと称される人物なり。柔らかな微笑みの裏に、大陸全土の依頼・冒険者・モンスターの情報を整然と収めた頭脳を持ち、「ミレイアが知らぬ冒険者はギルドに存在しない」と語る者もいる。元は名門魔術学院の研究生なりしが、ある事情により学院を去り、ギルドへと身を寄せたという。その事情については本人は多くを語らぬが、時折、古代文字が刻まれた羊皮紙をそっと手帳に挟む姿が目撃されている。冒険者への助言は的確であり、彼女の「気をつけなさい」という一言で何人もの命が救われたと伝えられる。',
+    secret: false,
+  },
+  {
+    id: 'old-swordsman',
+    icon: '🗡️',
+    name: 'バラン・ドワーフハンド',
+    title: 'ギルド古参訓練士・錆びた英雄',
+    quote: '若いころは無敵だと思っておった。……膝が笑うのは、歳のせいだけではないぞ。',
+    lore: '半世紀以上前よりギルドに籍を置く、最古参の訓練士なりと記録は伝える。かつて「流星の剣士」と呼ばれ、単身でドラゴン系モンスター三体を屠った伝説は今も語り草なり。しかし三十年前、黄昏の遠征にてパーティの全滅を唯一の生存者として経験したのち、前線を退き、後進の指導に生涯を捧げると誓ったという。訓練場の隅に座り、木刀で新米の構えを正す姿は穏やかなれど、その目は見る者の心の奥底を見通すかのごとく鋭い。左足に刻まれた深い傷跡は、あの日の戦いのものなりと本人は認めるが、それ以上は決して語らぬ。「死に様より生き様を学べ」が彼の口癖なり。',
+    secret: false,
+  },
+  {
+    id: 'mysterious-scholar',
+    icon: '🔮',
+    name: 'セイファス・ノワール',
+    title: '正体不明の来訪者・封印の番人',
+    quote: '……コーデックスの名を口にするとは、あなたは何を知っている？　知らぬなら、それが身のためなり。知ってしまったなら……もう遅い。',
+    lore: 'いつの頃からかギルド本部の片隅に現れるようになった、黒ずくめの長衣を纏う人物なり。その年齢は誰にも判ぜず、古参のバランすら「子供の頃から同じ顔をしている」と不気味がる。ギルドマスターのガルドゥスのみが彼と言葉を交わすことを許されており、二人の間に何らかの契約が存在するとも囁かれる。腰の革袋には常に幾つかの封蝋された書簡が入れられており、それらは決して他者に見せることなく、夜が更けると共に姿ごと消えてしまう。大陸の東方に伝わる「コーデックス」——古代魔導文明の知識が封じられたと言われる禁断の魔導書——との関わりを持つ唯一の人物とも噂されるが、問い詰めようとした者は、翌朝には内容を思い出せなくなっていたと伝えられる。',
+    secret: true,
+  },
+];
+
+// ─── Monster Lore Data ───────────────────────────────────────────
+const MONSTER_LORE = [
+  { id:'slime', name:'スライム', type:'スライム系', lv:1, icon:'🟦',
+    lore:'太古の創世記に記されし最初の魔物なりと伝えられる。天地がまだ混沌に包まれていた時代、大地の霊気が凝固して生まれた原初の生命体とも言われ、魔物学者の間では「全モンスターの祖型」として研究対象となっている。大陸全土の平野・洞窟・水辺を問わず生息し、その分布域は他のいかなる種をも凌駕する。かつて英雄ラグナ・ドワーブは「スライムを侮る者は剣士失格」との言葉を残したが、その言葉通り、油断した新米冒険者が集団のスライムに囲まれて命を落とした記録は枚挙に暇がない。単体では脅威に乏しいがその粘液は鎧を腐食し、大群になれば騎士団すら足止めするという。恐れられる理由はその数と適応力——いかなる環境でも生き延びるその生命力は、まさに原初の魔物に相応しき頑強さなりと語り継がれている。' },
+  { id:'red-slime', name:'あかスライム', type:'スライム系', lv:1, icon:'🔴',
+    lore:'通常のスライムが火山地帯の溶岩熱に長年晒され、体内に炎の霊素を取り込むことで変異した種なりと博物誌は記す。その体色は鮮血を思わせる深紅であり、触れれば皮膚を焼く熱を帯びているという。生息地は主に火山の麓や熱砂の荒野であり、冷涼な地には存在を確認されていない。英雄セリカ・フロストが北方遠征の帰路に赤い沼地を踏んで重傷を負った記録が残されており、以来「赤い水たまりには近づくな」という戒めが旅人の間に広まった。炎属性の呪文が通じにくく、むしろ氷の魔法に極めて弱いという特性を持つため、知識なき剣士が火炎魔法を浴びせて逆効果になった笑えぬ事故も記録されている。外見の鮮やかさとは裏腹に、その存在は冒険者に静かな恐怖を与えてきたのなり。' },
+  { id:'wolf', name:'おおかみ', type:'魔獣系', lv:2, icon:'🐺',
+    lore:'森の番人にして狩人なりと古えの獣学書は記す。通常の狼が長年にわたり魔力の濃い地を生息地とすることで魔獣化した種であり、知性は通常の狼を大きく超え、罠を見破り、人間の言葉の意味を部分的に理解するとも伝えられる。群れを組む習性を持ち、リーダーである「群れ長」の号令一つで連携した包囲攻撃を仕掛けてくる。かつてアルデン平原を縄張りにしていた魔狼の群れは、交易路を封鎖して三つの村を飢えに追い込んだという記録が残されており、当時の魔物討伐隊が壊滅的損害を受けた末にようやく群れを散らしたと伝えられる。単独では人を圧倒するほどの速度と牙を持ち、集団に囲まれれば熟練の剣士でも生還は難しい。夜、森の奥から聞こえる遠吠えは、次の夜明けが来る前に誰かが命を落とす予兆と、旅人たちは今も信じているのなり。' },
+  { id:'ghost', name:'ゴースト', type:'不死系', lv:2, icon:'👻',
+    lore:'この世に強い未練を残したまま逝った者の魂が、肉体を失いながらも現世にとどまり続けることで生まれる不死の存在なりと、霊魂学者たちは結論付けている。その起源は人間であるがゆえに、人の言語を操り、人の感情を模倣し、旅人を欺くことに長けていると言われる。主な生息地は廃墟・古戦場・墓地であり、かつて血が流れた地には必ずといって良いほど目撃談が存在する。二百年前の大戦争「緋色の盟約」の古戦場跡には今もゴーストが大量に棲み着いており、その場所は現在も立入禁止区域に指定されている。英雄パルマ・セルファは「奴らが恐ろしいのは、剣が通らぬからではなく、かつて人であったという事実だ」と手記に記している。光の呪文のみが有効であり、闇に慣れぬ冒険者が灯りを消した地下で遭遇した場合、生還の見込みは極めて薄いと伝えられている。' },
+  { id:'orc', name:'オーク', type:'人型', lv:3, icon:'👹',
+    lore:'人型でありながら人ならざる者として、大陸の民から長く恐れられてきた種族なり。起源については諸説あるが、最も信憑性が高いとされる説は「古代魔導文明が戦争のために生み出した人工戦士族」というものであり、その知性と組織力は人間社会に匹敵すると記録されている。独自の言語・文化・族長制度を持ち、山岳地帯や深い森の奥に集落を形成して暮らしている。二百年以上の平和が続いた後、族長「鉄牙のグラグ」の下で組織された集落連合が辺境の村落を次々と襲撃した事件は「グラグの咆哮」として歴史書に記されており、騎士団との衝突は三年にわたったと伝えられる。個体の戦闘力も高いが、それ以上に危険なのは集団時の組織的な戦術行動であり、個人の技量で挑もうとした冒険者が返り討ちにあった例は少なくない。' },
+  { id:'skeleton', name:'スケルトン', type:'不死系', lv:3, icon:'💀',
+    lore:'かつて戦いの中で倒れた戦士の骸骨が、強力な死霊魔法によって意思を植え付けられ、不死の兵士として蘇った者たちなりと伝えられる。その起源を辿れば、三百年前の大魔術師ヴォルス・ネクローマが死者の軍団を作り上げようとした禁断の実験に行き着くとも言われる。生きた者には感じられぬ恐怖も痛みも死への恐れも持たず、ただ与えられた命令のみを忠実に実行する。廃墟・地下迷宮・呪われた古戦場に多く現れ、かつての戦士としての技能を忘れぬまま剣や斧を振るう。英雄マレン・ライトシールドは「骸骨の剣士と戦った夜、自分が何と剣を交えているかを一瞬忘れた。それほど剣技は洗練されていた」と述懐している。打撃への耐性が高く、刃も骨の間をすり抜けるため、通常の剣での討伐は極めて難しい。光の呪文に弱いという弱点のみが、冒険者の希望の光なりと語り継がれているのなり。' },
+  { id:'golem', name:'ゴーレム', type:'魔獣系', lv:4, icon:'🗿',
+    lore:'古代の魔導師たちが「永遠に動き続ける番人」を求めて生み出した、石と魔力の結晶なりと博物誌の古いページは語る。その材質は花崗岩・玄武岩・魔鉱石など様々であり、素材に込められた魔力の量によって知性と戦闘力が決定されると研究者たちは考えている。自らを作った主の命令を絶対的な法として守り続け、主が死してなお何百年も同じ命令を遂行し続けた個体の記録も存在する。古代遺跡・封印された塔・魔術師の廃屋などを主な生息地とするが、これはそれらの場所が本来の「任務地」だからなりと考えられている。五十年前、封印が解けた古代の塔から現れた巨大ゴーレムが麓の街に向かって歩き始め、討伐隊が六百人もの兵力を投じてようやく足を止めたという事件は「石の進軍」として今も語られる。その巨体から繰り出す一撃は防御の固い騎士の盾ですら砕くと言われ、速度は遅いがその耐久力に諦めを感じた冒険者も多いのなり。' },
+  { id:'dark-knight', name:'あんこくのきし', type:'人型', lv:4, icon:'🖤',
+    lore:'かつて王国の守護を誓った騎士が、闇の力と取引をして不死を手に入れ、魂と引き換えに永遠に戦場を彷徨う存在と成り果てた者なりと伝説は語る。その鎧は元の王国の紋章が刻まれたままであり、見る者に「かつてここに人がいた」という凄惨な事実を突きつけると言われる。百五十年前の内乱時代、国王に裏切られた将軍ヴァルス・ダークメアが闇の神殿に魂を捧げて蘇ったのが始祖なりと伝えられ、彼が率いる呪われた騎士団は三つの王国を滅ぼしたという。元が優秀な騎士であるため剣技は洗練されており、かつての戦場の記憶を本能的に活用する戦術眼を持つ。英雄ガレス・ドーンブレイカーがこの種の討伐に半生を費やし「剣で倒せる相手ではない。まず光の呪文で闇を払え」との戦術書を残したことが、後の冒険者たちの命を救ったとされているのなり。' },
+  { id:'wyvern', name:'ワイバーン', type:'ドラゴン系', lv:5, icon:'🐲',
+    lore:'竜種の中では最も人間界に近い高度を飛翔し、最も多くの人命を奪ってきた空の脅威なりと飛行獣研究者たちは記す。真の竜には及ばぬも、翼の展開幅は十五メートルを超え、その翼を一振りするだけで馬車を転覆させる暴風が生まれるという。猛禽類の本能と竜の知性の半分を持ち合わせた存在であり、縄張り意識が強く、一度標的と定めた者は地の果てまで追うとも言われる。かつて「蒼天の要塞」と呼ばれた山岳都市は、ワイバーンの群れに三日三晩攻撃を受け続け廃城と化した。当時の領主が残した「空が影に覆われたとき、すでに逃げ場はなかった」という手記は、後の冒険者たちに空の脅威を学ばせるための教材として今も使われている。地上では足が遅いが、一度飛翔すれば追いつける騎馬はなく、炎の息吹と鋭い爪による同時攻撃は最上位の冒険者でなければ対応できないのなり。' },
+  { id:'dragon-lord', name:'りゅうおう', type:'ドラゴン系', lv:5, icon:'🐉',
+    lore:'古代の竜王伝説において「大地と天空と深淵のすべてを統べる竜族の頂点」として描かれる、この世で最も古く最も強大な存在なりと、幾千年の歴史書の全てが一致して記している。その起源は世界の創世に遡り、天地を分けた神々がこの世界に置き去りにした「力の結晶」が竜の形をとったものだという説が、魔導書研究者の間では最も有力視されている。直接の目撃証言はほとんど存在せず、存在そのものを疑う学者もいるほどなれど、遠い北方の凍土に「竜王の玉座」と呼ばれる山脈が実在することは確認されている。かつて伝説の勇者カルサ・エルウィンが単身で挑み、三日三晩の死闘の末に辛くも退けたという伝承が残る。コーデックスの古いページには「竜王の真の姿を見た者は、世界の真実を知り、そして沈黙を選ぶ」との一文が記されているが、その意味を解した者は未だなしとのことなり。' },
+];
+
+// ─── NPC Card ────────────────────────────────────────────────────
+function NpcCard({ npc }) {
+  return (
+    <div className="npc-card parchment">
+      <span className="npc-portrait">{npc.icon}</span>
+      <div className="npc-name parchment-title">{npc.name}</div>
+      <div className="npc-title">{npc.title}</div>
+      <div className="npc-quote-wrap">
+        <div className="npc-quote">「{npc.quote}」</div>
+      </div>
+      <div className="parchment-text">{npc.lore}</div>
+      {npc.secret && (
+        <div className="npc-secret">
+          ⚠ この人物については、ギルドの古い記録にも不審な点が多い。<br/>
+          「コーデックス」の真相を知る者は未だ現れず……
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Monster Accordion Item ───────────────────────────────────────
+function MonsterItem({ monster }) {
+  const [open, setOpen] = useState(false);
+  const toggle = () => { cursorSound(); setOpen(v => !v); };
+  return (
+    <div className="monster-item">
+      <div className="monster-header" onClick={toggle}>
+        <span className="monster-icon">{monster.icon}</span>
+        <div className="monster-name-lv">
+          <div className="monster-mname">{monster.name}</div>
+          <div className="monster-type">{monster.type} · Lv{monster.lv}</div>
+        </div>
+        <span className={`monster-toggle${open ? ' open' : ''}`}>▼</span>
+      </div>
+      {open && (
+        <div className="monster-lore">
+          <div className="parchment-text">{monster.lore}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Main App ────────────────────────────────────────────────────
+function App() {
+  const title = useTypewriter('◆ でんしょうの　ま ◆', 60);
+
+  return (
+    <div id="root">
+      <div className="page-header">{title || '　'}</div>
+      <div className="page-subtitle">
+        ギルドに伝わる者たちの記録と、魔物の伝承を綴る古書なり。<br/>
+        知りたければ、ページをめくるがよい。
+      </div>
+
+      <div className="page-container">
+
+        {/* ─── NPC Section ─── */}
+        <DQWindow title="◆ ギルドに　かかわる　もの　たち ◆">
+          <div className="ancient-divider">— 人物録 —</div>
+          {NPCS.map(npc => <NpcCard key={npc.id} npc={npc} />)}
+        </DQWindow>
+
+        <div className="section-gap" />
+
+        {/* ─── Monster Lore Section ─── */}
+        <DQWindow title="◆ まもの　でんしょうし ◆">
+          <div className="ancient-divider">— 魔物誌 —</div>
+          <div style={{fontSize:8, color:'#a0c0ff', marginBottom:16, lineHeight:2}}>
+            ▼ 名前を選ぶと伝承が開く
+          </div>
+          {MONSTER_LORE.map(m => <MonsterItem key={m.id} monster={m} />)}
+        </DQWindow>
+
+        <div className="section-gap" />
+
+        {/* ─── Footer / Back ─── */}
+        <div className="back-area">
+          <button className="dq-btn" onClick={() => { selectSound(); location.href='board.html'; }}>
+            ← ギルド　ほんぶへ
+          </button>
+        </div>
+
+        <div style={{textAlign:'center', marginTop:20, fontSize:7, color:'#303060', lineHeight:2}}>
+          この書は伝承の守り人によって記されたなり。<br/>
+          無断で持ち出す者には、相応の呪いを覚悟されたし。
+        </div>
+
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
