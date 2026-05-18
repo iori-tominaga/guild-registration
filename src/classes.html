@@ -442,11 +442,9 @@ function App() {
         <SwitchClassSection char={char} onSwitch={handleSwitch} />
 
         <div style={{textAlign:'center',marginTop:8}}>
-          <a href="board.html"
-            style={{fontSize:8,color:'#4040a0',letterSpacing:2}}
-            onClick={() => cancelSound()}>
-            ← ギルド本部へもどる
-          </a>
+          <button className="dq-btn" onClick={() => { selectSound(); location.href='board.html'; }}>
+            ← ギルド本部へ戻る
+          </button>
         </div>
       </div>
     </div>
