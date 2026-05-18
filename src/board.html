@@ -116,6 +116,11 @@
   .fade-in { animation: fadeIn 0.3s ease-out both; }
   @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0;} }
   .blink { animation: blink 0.8s steps(1) infinite; }
+  @keyframes promoted-aura {
+    0%, 100% { filter: drop-shadow(0 0 3px rgba(255,215,0,0.6)) drop-shadow(0 0 6px rgba(255,215,0,0.35)); }
+    50%      { filter: drop-shadow(0 0 6px rgba(255,235,80,0.95)) drop-shadow(0 0 14px rgba(255,215,0,0.6)); }
+  }
+  .promoted-aura { animation: promoted-aura 1.8s ease-in-out infinite; display: inline-block; }
   .quest-item {
     display: flex; align-items: center; gap: 10px;
     padding: 8px 10px; border-bottom: 1px solid #1a1a60;
@@ -338,7 +343,9 @@ function CharacterPanel({ character, equipped }) {
       </DQWindow>
     );
   }
-  const s = character.cls.stats;
+  const activeCls = character.promotedCls ?? character.cls;
+  const isPromoted = !!character.promotedCls;
+  const s = activeCls.stats;
   const bonus = calcEquipBonus(equipped);
   const spellCount = loadSpellCount();
   const derived = [
@@ -353,10 +360,15 @@ function CharacterPanel({ character, equipped }) {
       <div style={{fontSize:9,color:'#c0d8ff',marginBottom:14}}>{tw}<span className="blink">█</span></div>
       <div className="guild-card fade-in">
         <div style={{display:'flex',gap:16,alignItems:'flex-start',marginBottom:16}}>
-          <ClassSprite cls={character.cls.id} weapon={equipped.weapon} armor={equipped.armor} shield={equipped.shield}/>
+          <div className={isPromoted ? 'promoted-aura' : ''}>
+            <ClassSprite cls={character.cls.id} weapon={equipped.weapon} armor={equipped.armor} shield={equipped.shield}/>
+          </div>
           <div style={{flex:1}}>
             <div style={{fontSize:15,color:'#ffec40',letterSpacing:2,marginBottom:4}}>{character.name}</div>
-            <div style={{fontSize:9,color:'#c0d8ff',marginBottom:6}}>{character.cls.icon} {character.cls.label}</div>
+            <div style={{fontSize:9, color: isPromoted ? '#ffd700' : '#c0d8ff', marginBottom:6}}>
+              {activeCls.icon} {activeCls.label}
+              {isPromoted && <span style={{marginLeft:6,fontSize:7,color:'#ffec40'}}>[しんか済]</span>}
+            </div>
             <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
               <span style={{fontSize:8,color:'#a0c0ff'}}>ランク</span>
               <span style={{fontSize:13,color:'#ffd700'}}>{character.rank}</span>

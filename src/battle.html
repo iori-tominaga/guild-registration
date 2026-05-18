@@ -99,6 +99,11 @@ html, body {
 }
 .monster-sprite { width: 112px; height: 112px; }
 .player-sprite  { width: 96px; height: 128px; transform: scaleX(-1); }
+@keyframes promoted-aura-battle {
+  0%, 100% { filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 6px rgba(255,215,0,0.65)) drop-shadow(0 0 12px rgba(255,215,0,0.4)); }
+  50%      { filter: drop-shadow(2px 4px 0 rgba(0,0,0,0.5)) drop-shadow(0 0 12px rgba(255,235,80,0.95)) drop-shadow(0 0 22px rgba(255,215,0,0.65)); }
+}
+.player-sprite.promoted { animation: promoted-aura-battle 1.8s ease-in-out infinite; }
 
 /* Player action animations */
 @keyframes p-attack {
@@ -1039,7 +1044,7 @@ function MonsterSprite({ id, state }) {
   return <div className={`monster-sprite ${state}`} dangerouslySetInnerHTML={{__html: sized}}/>;
 }
 
-function PlayerSprite({ parts }) {
+function PlayerSprite({ parts, promoted }) {
   const P = DQ_PARTS;
   if (!P) return null;
   const rects =
@@ -1049,7 +1054,7 @@ function PlayerSprite({ parts }) {
     (P.leftArms[parts.larm]   || P.leftArms.default  || '') +
     (P.legs[parts.legs]       || P.legs.other     || '');
   return (
-    <svg className="player-sprite" width="96" height="128" viewBox="0 0 12 16"
+    <svg className={`player-sprite${promoted ? ' promoted' : ''}`} width="96" height="128" viewBox="0 0 12 16"
          shapeRendering="crispEdges" style={{imageRendering:'pixelated'}}
          xmlns="http://www.w3.org/2000/svg">
       <g dangerouslySetInnerHTML={{ __html: rects }}/>
@@ -1160,7 +1165,7 @@ function MpBar({ current, max }) {
 }
 
 // ─── Field ───────────────────────────────────────────────────────
-function Field({ monster, player, charParts, monsterState, playerAction, magicFx, magicCircle, showShield, particles, popups, fieldRef }) {
+function Field({ monster, player, charParts, promoted, monsterState, playerAction, magicFx, magicCircle, showShield, particles, popups, fieldRef }) {
   if (!monster) return <div className="field bg-grass" ref={fieldRef}><div className="loading">よみこみちゅう…</div></div>;
   const bg = BG_MAP[monster.cat] || BG_MAP.slime;
   return (
@@ -1186,7 +1191,7 @@ function Field({ monster, player, charParts, monsterState, playerAction, magicFx
         <MonsterSprite id={monster.id} state={monsterState}/>
       </div>
       <div className={`combatant player player-act-${playerAction||'idle'}`}>
-        <PlayerSprite parts={charParts}/>
+        <PlayerSprite parts={charParts} promoted={promoted}/>
       </div>
       {magicCircle && <MagicCircle type={magicCircle} show={true}/>}
       {magicFx && <div className={`magic-fx ${magicFx}`}>
@@ -1691,6 +1696,7 @@ function App() {
       <div className={`battle-app ${shake?'screen-shake':''}`}>
         <Field
           monster={monster} player={player} charParts={charParts}
+          promoted={!!charData?.promotedCls}
           monsterState={monsterState} playerAction={playerAction}
           magicFx={magicFx} magicCircle={magicCircle}
           showShield={showShield} particles={particles} popups={popups}
