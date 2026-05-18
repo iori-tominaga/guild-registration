@@ -1,6 +1,6 @@
 # 要件定義書 — 冒険者ギルド登録アプリ
 
-**バージョン**: 8.1.1  
+**バージョン**: 8.1.2  
 **最終更新**: 2026-05-18  
 **ステータス**: リリース済み（GitHub Pages）
 
@@ -261,3 +261,4 @@
 | 8.0.0 | 2026-05-18 | Quest 08：lore.html（伝承の間）を追加。主要NPC 4人・モンスター10体の古書風伝承を掲載。lore-keeper / ui-critic Subagentを追加。board.htmlに「でんしょうの ま」リンク追加。game-spec/features.mdにコーデックス伏線をメモ。 |
 | 8.1.0 | 2026-05-18 | spells.html / equipment.html / monsters.html / classes.html の「ギルド本部へもどる」リンクを `dq-btn` ボタンに統一（lore.html と同デザイン）。テキストを「← ギルド本部へ戻る」に統一。spells.html と monsters.html に `selectSound` 関数を追加。 |
 | 8.1.1 | 2026-05-18 | 【バグ修正】index.html の再登録でキャラのレベル・経験値・進化状態が消えるバグを修正。① index.html はキャラ既存時に board.html へ自動リダイレクト（`?new=1` でスキップ可）、② board.html の「← 登録ページへもどる」リンクを「⚠ 新規キャラクターを作る」ボタン＋確認ダイアログに置換（はい押下で進捗系 localStorage キーをクリアして遷移）、③ classes.html の `SwitchClassSection` を進化済み時にロック表示にして職業変更を禁止。 |
+| 8.1.2 | 2026-05-18 | 【仕様再調整】8.1.1 の ③ を撤回し、`SwitchClassSection` の職業変更を進化後も可能にした。さらに `unlocks` に含まれる職業はボタン表示を進化形（例: せんし → 勇者）に置換し、切替時は `promotedCls` を自動セットすることで「進化前の すがたに 戻らない」マルチクラス成長マップに対応。 |

@@ -294,30 +294,25 @@ function PromoteSection({ char, unlocks, onPromote }) {
 }
 
 // ─── Switch Class Section ─────────────────────────────────────────
-function SwitchClassSection({ char, onSwitch }) {
+function SwitchClassSection({ char, unlocks, onSwitch }) {
   const [confirm, setConfirm] = useState(null);
   if (!char) return null;
   const currentId = char.cls?.id;
+  const isPromotedNow = !!char.promotedCls;
 
-  if (char.promotedCls) {
-    return (
-      <div className="dq-window fade-in">
-        <div className="dq-title-bar">◆ しょくぎょうを　かえる ◆</div>
-        <div className="dq-content" style={{textAlign:'center', padding:'20px 16px'}}>
-          <div style={{fontSize:24, marginBottom:8, opacity:0.5}}>🔒</div>
-          <div style={{fontSize:9, color:'#ffd700', lineHeight:2, marginBottom:6, letterSpacing:1}}>
-            しんかずみのため<br/>しょくぎょうへんこうは できません
-          </div>
-          <div style={{fontSize:7, color:'#808090', lineHeight:2}}>
-            一度 しんかした しょくぎょうは<br/>もう もとには もどせません
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const getDisplay = (cls) => {
+    const isUnlocked = unlocks.includes(cls.id);
+    const evo = EVOLUTIONS[cls.id];
+    return isUnlocked && evo
+      ? { icon: evo.icon, label: evo.label, promoted: true }
+      : { icon: cls.icon, label: cls.label, promoted: false };
+  };
 
   function handleClick(cls) {
-    if (cls.id === currentId) { cancelSound(); return; }
+    const d = getDisplay(cls);
+    if (cls.id === currentId && d.promoted === isPromotedNow) {
+      cancelSound(); return;
+    }
     selectSound();
     setConfirm(cls);
   }
@@ -333,43 +328,49 @@ function SwitchClassSection({ char, onSwitch }) {
       <div className="dq-title-bar">◆ しょくぎょうを　かえる ◆</div>
       <div className="dq-content">
         <div style={{fontSize:7,color:'#808090',letterSpacing:1,marginBottom:4,lineHeight:2}}>
-          第一職業にのみ変更できます。
+          かいほうずみの しょくぎょうは<br/>しんか後の すがたで さんせんします
         </div>
         <div className="cls-grid">
-          {CLASSES.map(cls => (
-            <div
-              key={cls.id}
-              className={`cls-btn${cls.id === currentId ? ' active' : ''}`}
-              onClick={() => handleClick(cls)}
-              tabIndex={0}
-              onKeyDown={e => { if(e.key==='Enter') handleClick(cls); }}
-            >
-              <span style={{fontSize:16}}>{cls.icon}</span>
-              <span>{cls.label}</span>
-            </div>
-          ))}
+          {CLASSES.map(cls => {
+            const d = getDisplay(cls);
+            return (
+              <div
+                key={cls.id}
+                className={`cls-btn${cls.id === currentId ? ' active' : ''}`}
+                onClick={() => handleClick(cls)}
+                tabIndex={0}
+                onKeyDown={e => { if(e.key==='Enter') handleClick(cls); }}
+              >
+                <span style={{fontSize:16}}>{d.icon}</span>
+                <span style={d.promoted ? {color:'#ffd700'} : {}}>{d.label}</span>
+              </div>
+            );
+          })}
         </div>
 
-        {confirm && (
-          <div style={{
-            marginTop:14, padding:12, background:'#00001a',
-            border:'2px solid #ffd700', textAlign:'center'
-          }}>
-            <div style={{fontSize:8,color:'#ffec40',marginBottom:8,letterSpacing:1}}>
-              {confirm.icon} {confirm.label} に　かえますか？
+        {confirm && (() => {
+          const d = getDisplay(confirm);
+          return (
+            <div style={{
+              marginTop:14, padding:12, background:'#00001a',
+              border:'2px solid #ffd700', textAlign:'center'
+            }}>
+              <div style={{fontSize:8,color:'#ffec40',marginBottom:8,letterSpacing:1}}>
+                {d.icon} {d.label} に　かえますか？
+              </div>
+              <div style={{display:'flex',gap:8,justifyContent:'center'}}>
+                <button className="dq-btn" onClick={doSwitch}
+                  style={{fontSize:9,padding:'8px 16px',color:'#ffec40',borderColor:'#ffd700'}}>
+                  はい
+                </button>
+                <button className="dq-btn" onClick={() => { cancelSound(); setConfirm(null); }}
+                  style={{fontSize:9,padding:'8px 16px'}}>
+                  いいえ
+                </button>
+              </div>
             </div>
-            <div style={{display:'flex',gap:8,justifyContent:'center'}}>
-              <button className="dq-btn" onClick={doSwitch}
-                style={{fontSize:9,padding:'8px 16px',color:'#ffec40',borderColor:'#ffd700'}}>
-                はい
-              </button>
-              <button className="dq-btn" onClick={() => { cancelSound(); setConfirm(null); }}
-                style={{fontSize:9,padding:'8px 16px'}}>
-                いいえ
-              </button>
-            </div>
-          </div>
-        )}
+          );
+        })()}
       </div>
     </div>
   );
@@ -401,10 +402,14 @@ function App() {
   const handleSwitch = useCallback((cls) => {
     if (!char) return;
     const classLevels = getClassLevels(char);
-    const newChar = { ...char, cls, promotedCls: null, classLevels };
+    const evo = EVOLUTIONS[cls.id];
+    const promotedCls = unlocks.includes(cls.id) && evo
+      ? { ...evo, id: cls.id + '_evo' }
+      : null;
+    const newChar = { ...char, cls, promotedCls, classLevels };
     localStorage.setItem(CHAR_KEY, JSON.stringify(newChar));
     setChar(newChar);
-  }, [char]);
+  }, [char, unlocks]);
 
   if (!char) return null;
 
@@ -450,7 +455,7 @@ function App() {
 
         <EvolutionMap  char={char} unlocks={unlocks} />
         <PromoteSection char={char} unlocks={unlocks} onPromote={handlePromote} />
-        <SwitchClassSection char={char} onSwitch={handleSwitch} />
+        <SwitchClassSection char={char} unlocks={unlocks} onSwitch={handleSwitch} />
 
         <div style={{textAlign:'center',marginTop:8}}>
           <button className="dq-btn" onClick={() => { selectSound(); location.href='board.html'; }}>
