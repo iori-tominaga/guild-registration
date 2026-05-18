@@ -624,6 +624,21 @@ function App() {
   const [equipped, setEquipped] = useState({});
   const [monsters, setMonsters] = useState([]);
   const [showMonsterSelect, setShowMonsterSelect] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  const PROGRESS_KEYS = [
+    'codequest:save.character',
+    'codequest:save.character.spells',
+    'codequest:save.equipment',
+    'codequest:save.evolution.unlocks',
+    'codequest:save.bestiary',
+    'codequest:save.log',
+    'codequest:save.questLog',
+  ];
+  const handleNewCharacter = () => {
+    PROGRESS_KEYS.forEach(k => localStorage.removeItem(k));
+    location.href = 'index.html?new=1';
+  };
   const goFight = () => {
     selectSound();
     const src = monsters.length > 0 ? Promise.resolve(monsters) : fetch('monsters.json').then(r => r.json());
@@ -699,8 +714,41 @@ function App() {
         <div className="fade-in" style={{animationDelay:'0.15s'}}><BattleLogPanel/></div>
         <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations onBattleSelect={() => setShowMonsterSelect(true)}/></div>
         <div style={{textAlign:'center'}}>
-          <a href="index.html" style={{fontSize:8,color:'#4040a0',letterSpacing:2}}>← 登録ページへもどる</a>
+          <button className="dq-btn" onClick={() => { selectSound(); setShowResetConfirm(true); }}
+            style={{fontSize:9,color:'#ff8080',borderColor:'#a04040'}}>
+            ⚠ 新規キャラクターを作る
+          </button>
         </div>
+        {showResetConfirm && (
+          <div style={{
+            position:'fixed', inset:0, background:'rgba(0,0,0,0.8)', zIndex:100,
+            display:'flex', alignItems:'center', justifyContent:'center', padding:20,
+          }} onClick={() => setShowResetConfirm(false)}>
+            <div className="dq-window" style={{maxWidth:400, width:'100%'}} onClick={e => e.stopPropagation()}>
+              <div className="dq-title-bar" style={{color:'#ff8080'}}>⚠ かくにん</div>
+              <div style={{padding:'20px 16px', textAlign:'center'}}>
+                <div style={{fontSize:10, color:'#ffec40', lineHeight:2, marginBottom:14}}>
+                  あたらしい キャラクターを<br/>つくりますか？
+                </div>
+                <div style={{fontSize:8, color:'#ff8080', lineHeight:2, marginBottom:18}}>
+                  げんざいの キャラクター・<br/>
+                  しんかじょうたい・そうび・<br/>
+                  せんれき が すべて きえます
+                </div>
+                <div style={{display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap'}}>
+                  <button className="dq-btn" onClick={handleNewCharacter}
+                    style={{fontSize:9, padding:'10px 18px', color:'#ff8080', borderColor:'#a04040'}}>
+                    はい・けす
+                  </button>
+                  <button className="dq-btn" onClick={() => setShowResetConfirm(false)}
+                    style={{fontSize:9, padding:'10px 18px'}}>
+                    いいえ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <div style={{marginTop:20,fontSize:7,color:'#2a2a60',textAlign:'center',letterSpacing:2}}>
         ADVENTURER'S GUILD © {new Date().getFullYear()}

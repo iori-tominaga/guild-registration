@@ -796,7 +796,7 @@ function StepComplete({ name, cls, profile, onSaved }) {
           >▶ ギルド本部へ</button>
           <button
             className="dq-btn"
-            onClick={() => { selectSound(); location.reload(); }}
+            onClick={() => { selectSound(); location.href = 'index.html?new=1'; }}
             style={{fontSize:9, padding:'8px 16px', color:'#a0a0c0'}}
           >もういちど</button>
         </div>
@@ -883,6 +883,14 @@ function App() {
   const [name, setName] = useState('');
   const [cls, setCls] = useState(null);
   const [profile, setProfile] = useState('');
+  const [redirecting, setRedirecting] = useState(() => {
+    const isNew = new URL(location.href).searchParams.has('new');
+    if (isNew) return false;
+    try { return !!localStorage.getItem('codequest:save.character'); } catch { return false; }
+  });
+  useEffect(() => {
+    if (redirecting) { location.replace('board.html'); }
+  }, [redirecting]);
   useEffect(() => {
     const sel = '.dq-btn, .class-item';
     function onDown(e) {
@@ -912,6 +920,8 @@ function App() {
   const [historyCount, setHistoryCount] = useState(() => loadHistory().length);
 
   const STEPS = ['なまえ','しょくぎょう','じこしょうかい','かくにん','かんりょう'];
+
+  if (redirecting) return null;
 
   return (
     <div style={{

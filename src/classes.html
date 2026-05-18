@@ -299,8 +299,25 @@ function SwitchClassSection({ char, onSwitch }) {
   if (!char) return null;
   const currentId = char.cls?.id;
 
+  if (char.promotedCls) {
+    return (
+      <div className="dq-window fade-in">
+        <div className="dq-title-bar">◆ しょくぎょうを　かえる ◆</div>
+        <div className="dq-content" style={{textAlign:'center', padding:'20px 16px'}}>
+          <div style={{fontSize:24, marginBottom:8, opacity:0.5}}>🔒</div>
+          <div style={{fontSize:9, color:'#ffd700', lineHeight:2, marginBottom:6, letterSpacing:1}}>
+            しんかずみのため<br/>しょくぎょうへんこうは できません
+          </div>
+          <div style={{fontSize:7, color:'#808090', lineHeight:2}}>
+            一度 しんかした しょくぎょうは<br/>もう もとには もどせません
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   function handleClick(cls) {
-    if (cls.id === currentId && !char.promotedCls) { cancelSound(); return; }
+    if (cls.id === currentId) { cancelSound(); return; }
     selectSound();
     setConfirm(cls);
   }
@@ -316,14 +333,13 @@ function SwitchClassSection({ char, onSwitch }) {
       <div className="dq-title-bar">◆ しょくぎょうを　かえる ◆</div>
       <div className="dq-content">
         <div style={{fontSize:7,color:'#808090',letterSpacing:1,marginBottom:4,lineHeight:2}}>
-          第一職業にのみ変更できます。<br/>
-          <span style={{color:'#ff8080'}}>進化状態はリセットされます。</span>
+          第一職業にのみ変更できます。
         </div>
         <div className="cls-grid">
           {CLASSES.map(cls => (
             <div
               key={cls.id}
-              className={`cls-btn${cls.id === currentId && !char.promotedCls ? ' active' : ''}`}
+              className={`cls-btn${cls.id === currentId ? ' active' : ''}`}
               onClick={() => handleClick(cls)}
               tabIndex={0}
               onKeyDown={e => { if(e.key==='Enter') handleClick(cls); }}
@@ -342,11 +358,6 @@ function SwitchClassSection({ char, onSwitch }) {
             <div style={{fontSize:8,color:'#ffec40',marginBottom:8,letterSpacing:1}}>
               {confirm.icon} {confirm.label} に　かえますか？
             </div>
-            {char.promotedCls && (
-              <div style={{fontSize:7,color:'#ff8080',marginBottom:8}}>
-                ※ 進化状態がリセットされます
-              </div>
-            )}
             <div style={{display:'flex',gap:8,justifyContent:'center'}}>
               <button className="dq-btn" onClick={doSwitch}
                 style={{fontSize:9,padding:'8px 16px',color:'#ffec40',borderColor:'#ffd700'}}>
