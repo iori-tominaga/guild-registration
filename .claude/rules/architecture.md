@@ -28,6 +28,10 @@ guild-registration/
 │   ├── equipment.html         # 装備の間（Quest 03）
 │   ├── monsters.html          # モンスター図鑑（Quest 04）
 │   ├── spells.html            # 呪文システム（Quest 05）
+│   ├── battle.html            # バトル画面（Quest 06）
+│   ├── classes.html           # 職業進化（Quest 7.1）
+│   ├── lore.html              # 伝承の間（Quest 08）
+│   ├── portals.html           # 古代の門（Quest 09）
 │   ├── monsters.json          # モンスターデータ
 │   └── spells.json            # 呪文データ
 └── docs/

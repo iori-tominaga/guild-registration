@@ -605,6 +605,7 @@ function AdventureLocations({ onBattleSelect }) {
     { icon:'⚔️', label:'たたかいの　ば',     desc:'モンスターをえらんでたたかう', href:'battle.html', battle:true },
     { icon:'⬆️', label:'しょくぎょう　しんか', desc:'職業を進化させ、新たな力を得る', href:'classes.html' },
     { icon:'📚', label:'でんしょうの　ま',    desc:'ギルドの歴史と魔物の伝承を読む', href:'lore.html' },
+    { icon:'⛩', label:'こだいの　もん',      desc:'外なる世界と結ぶ古代の門', href:'portals.html' },
   ];
   return (
     <DQWindow title="◆ ぼうけんの　ばしょ ◆">
@@ -637,6 +638,7 @@ function App() {
   const [monsters, setMonsters] = useState([]);
   const [showMonsterSelect, setShowMonsterSelect] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   const PROGRESS_KEYS = [
     'codequest:save.character',
@@ -722,6 +724,14 @@ function App() {
             </button>
           </div>
         )}
+        {character && (
+          <div className="fade-in" style={{animationDelay:'0.07s',textAlign:'center'}}>
+            <button className="dq-btn" onClick={() => { selectSound(); setShowReportModal(true); }}
+              style={{fontSize:11,padding:'12px 24px',color:'#ffd700',borderColor:'#8a6a30',letterSpacing:2,width:'100%',maxWidth:320}}>
+              ⛩ ぼうけんを　ほうこくする
+            </button>
+          </div>
+        )}
         <div className="fade-in" style={{animationDelay:'0.1s'}}><QuestLog/></div>
         <div className="fade-in" style={{animationDelay:'0.15s'}}><BattleLogPanel/></div>
         <div className="fade-in" style={{animationDelay:'0.2s'}}><AdventureLocations onBattleSelect={() => setShowMonsterSelect(true)}/></div>
@@ -755,6 +765,67 @@ function App() {
                   <button className="dq-btn" onClick={() => setShowResetConfirm(false)}
                     style={{fontSize:9, padding:'10px 18px'}}>
                     いいえ
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        {showReportModal && (
+          <div style={{
+            position:'fixed', inset:0, background:'rgba(0,0,0,0.85)', zIndex:100,
+            display:'flex', alignItems:'center', justifyContent:'center', padding:20, overflowY:'auto',
+          }} onClick={() => setShowReportModal(false)}>
+            <div className="dq-window" style={{maxWidth:480, width:'100%', maxHeight:'90vh', overflowY:'auto'}} onClick={e => e.stopPropagation()}>
+              <div className="dq-title-bar" style={{color:'#ffd700'}}>⛩ ぼうけんを　ほうこく ⛩</div>
+              <div style={{padding:'20px 18px'}}>
+                <div style={{fontSize:9, color:'#ffec40', lineHeight:2, marginBottom:14, letterSpacing:1}}>
+                  Claude Code を起動して、<br/>
+                  つぎの呪文をとなえてください：
+                </div>
+                <div style={{
+                  background:'#000020', border:'2px solid #4040a0', padding:'14px 12px',
+                  fontSize:8, color:'#c0e0ff', lineHeight:2, letterSpacing:1,
+                  marginBottom:14, wordBreak:'break-all',
+                }}>
+                  {character ? (
+                    <>
+                      キャラ「<span style={{color:'#ffec40'}}>{character.name}</span>」<br/>
+                      （{(character.promotedCls ?? character.cls).label}、<br/>
+                      &nbsp;Lv.{getClassLevels(character)[character.cls?.id]?.lv ?? 1}、{character.rank}ランク）<br/>
+                      の冒険結果を、<br/>
+                      <span style={{color:'#40ff80'}}>GitHub MCP</span> 経由で<br/>
+                      <span style={{color:'#40ff80'}}>iori-tominaga/guild-registration</span> の<br/>
+                      Issue として登録して
+                    </>
+                  ) : (
+                    '現在のキャラクター情報がありません。'
+                  )}
+                </div>
+                <div style={{fontSize:7, color:'#8090b0', lineHeight:2, marginBottom:16, letterSpacing:1}}>
+                  Claude Code が GitHub MCP を呼び出し、<br/>
+                  あなたの冒険記録が <span style={{color:'#ffd700'}}>外なる世界</span> へ届きます。<br/>
+                  ※ このゲーム自体は API を叩きません
+                </div>
+                <div style={{display:'flex', gap:10, justifyContent:'center', flexWrap:'wrap'}}>
+                  <button className="dq-btn" onClick={() => {
+                    if (character) {
+                      const lv = getClassLevels(character)[character.cls?.id]?.lv ?? 1;
+                      const label = (character.promotedCls ?? character.cls).label;
+                      const msg = `キャラ「${character.name}」（${label}、Lv.${lv}、${character.rank}ランク）の冒険結果を、GitHub MCP 経由で iori-tominaga/guild-registration の Issue として登録して`;
+                      navigator.clipboard?.writeText(msg);
+                    }
+                    selectSound();
+                  }} style={{fontSize:9, padding:'10px 18px', color:'#ffec40', borderColor:'#ffd700'}}>
+                    📋 コピー
+                  </button>
+                  <button className="dq-btn" onClick={() => { selectSound(); location.href='portals.html'; }}
+                    style={{fontSize:9, padding:'10px 18px', color:'#a0c0ff'}}>
+                    ⛩ 古代の門を見る
+                  </button>
+                  <button className="dq-btn" onClick={() => setShowReportModal(false)}
+                    style={{fontSize:9, padding:'10px 18px'}}>
+                    閉じる
                   </button>
                 </div>
               </div>
