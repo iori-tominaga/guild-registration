@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>スプライト解像度くらべ - 実験室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; min-height: 100%;
+    background: #000810;
+    font-family: 'Press Start 2P', monospace;
+    color: #fff;
+  }
+  .stars {
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(1px 1px at 10% 15%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 70%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 30%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 50%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 45%, #fff 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .dq-window {
+    background: #000060;
+    border: 4px solid #c8c8c8;
+    outline: 4px solid #000060;
+    box-shadow:
+      inset 0 0 0 2px #ffffff,
+      0 0 0 2px #000,
+      6px 6px 0 #000;
+    image-rendering: pixelated;
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .dq-window::before {
+    content: ''; position: absolute; inset: 3px;
+    border: 2px solid #4848b8; pointer-events: none;
+  }
+  .dq-title-bar {
+    background: #000060;
+    border-bottom: 2px solid #c8c8c8;
+    padding: 10px 16px;
+    text-align: center;
+    letter-spacing: 2px;
+    font-size: 11px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+  }
+  .dq-content { padding: 20px; }
+
+  .lab-wrap {
+    position: relative; z-index: 1;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+  .lab-title {
+    text-align: center;
+    font-size: 14px;
+    color: #ffec40;
+    text-shadow: 2px 2px #000;
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .lab-sub {
+    text-align: center;
+    font-size: 9px;
+    color: #a0c0ff;
+    letter-spacing: 1px;
+    margin-bottom: 28px;
+    line-height: 1.8;
+  }
+
+  .row {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+  .cell {
+    text-align: center;
+    flex: 0 0 auto;
+  }
+  .cell-sprite {
+    display: inline-block;
+    background: #000030;
+    border: 2px solid #404080;
+    padding: 8px;
+    margin-bottom: 8px;
+  }
+  .cell-label {
+    font-size: 10px;
+    color: #ffec40;
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .cell-sub {
+    font-size: 7px;
+    color: #a0c0ff;
+    line-height: 1.6;
+  }
+  .cell-sub b { color: #ffd700; }
+
+  .info-window { margin-top: 16px; }
+  .info-table {
+    width: 100%;
+    font-size: 9px;
+    color: #c0d8ff;
+    border-collapse: collapse;
+  }
+  .info-table th, .info-table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #1a1a60;
+    text-align: left;
+  }
+  .info-table th {
+    color: #ffec40;
+    letter-spacing: 1px;
+  }
+  .info-table td.num { text-align: right; font-family: 'Press Start 2P', monospace; }
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState } = React;
+
+// ─── パレット ───────────────────────────────────────────────────
+const PAL = {
+  '.': null,
+  'R': '#c03030',  // 赤 ヘルメット/服
+  'r': '#801818',  // 赤 影
+  'G': '#ffd700',  // 金
+  'g': '#a07020',  // 金 影
+  'F': '#f0c090',  // 肌
+  'f': '#c08060',  // 肌 影
+  'E': '#202020',  // 目
+  'M': '#603030',  // 口
+  'A': '#a0a0a0',  // 鎧 銀
+  'a': '#606060',  // 鎧 影
+  'W': '#e0e0e0',  // 剣身
+  'B': '#ffffff',  // 剣身ハイライト
+  'w': '#808080',  // 剣身 影
+  'H': '#604020',  // 柄 茶
+  'K': '#101010',  // 黒（靴）
+  'S': '#a06030',  // 盾 木
+  's': '#603018',  // 盾 木 影
+};
+
+// pixel grid → SVG <rect> 群
+function pixelArt(rows, palette) {
+  let svg = '';
+  for (let y = 0; y < rows.length; y++) {
+    const row = rows[y];
+    for (let x = 0; x < row.length; x++) {
+      const color = palette[row[x]];
+      if (color) {
+        svg += `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`;
+      }
+    }
+  }
+  return svg;
+}
+
+// ─── 12×16（現状）────────────────────────────────────────────
+// 既存の index.html と同じ「せんし」スプライト
+// legs.warrior + chain-armor + wood-shield + copper-sword + head.warrior
+const warrior12 = (
+  // legs
+  `<rect x="2" y="11" width="3" height="3" fill="#c03030"/><rect x="7" y="11" width="3" height="3" fill="#c03030"/><rect x="2" y="11" width="3" height="1" fill="#ffd700"/><rect x="7" y="11" width="3" height="1" fill="#ffd700"/><rect x="2" y="14" width="3" height="2" fill="#3a2010"/><rect x="7" y="14" width="3" height="2" fill="#3a2010"/><rect x="2" y="15" width="3" height="1" fill="#000"/><rect x="7" y="15" width="3" height="1" fill="#000"/>` +
+  // chain-armor body
+  `<rect x="2" y="6" width="8" height="1" fill="#606060"/><rect x="2" y="7" width="8" height="4" fill="#a0a0a0"/><rect x="2" y="9" width="8" height="1" fill="#404040"/><rect x="3" y="7" width="1" height="1" fill="#404040"/><rect x="5" y="7" width="1" height="1" fill="#404040"/><rect x="7" y="7" width="1" height="1" fill="#404040"/><rect x="4" y="8" width="1" height="1" fill="#404040"/><rect x="6" y="8" width="1" height="1" fill="#404040"/><rect x="8" y="8" width="1" height="1" fill="#404040"/><rect x="3" y="10" width="1" height="1" fill="#404040"/><rect x="5" y="10" width="1" height="1" fill="#404040"/><rect x="7" y="10" width="1" height="1" fill="#404040"/><rect x="2" y="6" width="1" height="1" fill="#ffffff"/><rect x="9" y="6" width="1" height="1" fill="#ffffff"/>` +
+  // wood-shield (left arm)
+  `<rect x="1" y="6" width="2" height="4" fill="#c08060"/><rect x="1" y="6" width="1" height="3" fill="#f0c090"/><rect x="0" y="5" width="2" height="1" fill="#a06030"/><rect x="0" y="6" width="2" height="5" fill="#a06030"/><rect x="0" y="11" width="2" height="1" fill="#604020"/><rect x="0" y="7" width="2" height="1" fill="#804020"/><rect x="0" y="9" width="2" height="1" fill="#804020"/><rect x="0" y="8" width="1" height="1" fill="#ffd700"/>` +
+  // copper-sword (right arm)
+  `<rect x="9" y="6" width="2" height="4" fill="#c08060"/><rect x="10" y="6" width="1" height="3" fill="#f0c090"/><rect x="11" y="2" width="1" height="1" fill="#ffe080"/><rect x="11" y="3" width="1" height="1" fill="#d08040"/><rect x="10" y="4" width="1" height="1" fill="#d08040"/><rect x="10" y="5" width="1" height="1" fill="#d08040"/><rect x="11" y="5" width="1" height="1" fill="#ffe080"/><rect x="9" y="6" width="3" height="1" fill="#ffd700"/><rect x="10" y="6" width="1" height="1" fill="#604020"/>` +
+  // head.warrior
+  `<rect x="3" y="0" width="6" height="1" fill="#a02020"/><rect x="2" y="1" width="8" height="1" fill="#c03030"/><rect x="2" y="2" width="8" height="1" fill="#c03030"/><rect x="2" y="2" width="8" height="1" fill="#ffd700"/><rect x="3" y="3" width="6" height="3" fill="#f0c090"/><rect x="4" y="4" width="1" height="1" fill="#000"/><rect x="7" y="4" width="1" height="1" fill="#000"/><rect x="5" y="5" width="2" height="1" fill="#c08060"/><rect x="2" y="3" width="1" height="2" fill="#c03030"/><rect x="9" y="3" width="1" height="2" fill="#c03030"/>`
+);
+
+// ─── 16×24（A作戦：中精細）─────────────────────────────────────
+const warrior16Grid = [
+  // 0          1
+  // 0123456789012345
+  '..RRRRRR........', // 0  かぶと頂部
+  '.RRRRRRRR.......', // 1
+  '.RGGGGGGR.......', // 2  金の鉢巻
+  '.RRRRRRRR.......', // 3  かぶと本体
+  '.RFFFFFFR....W..', // 4  かお（顔まわりに兜の縁）＋ 剣先
+  '.RFFFFFFR...WBW.', // 5
+  '.RFEFFEFR...WBW.', // 6  目
+  '.RFFFFFFR...WBW.', // 7
+  '.RFMMMMFR...WBW.', // 8  口
+  '.RRFFFFRR...WBW.', // 9  ほお当て
+  '..RRRRRR....WBW.', // 10 あごガード
+  '...AAAA.....WBW.', // 11 えり
+  '.SAAAAAAAAA.WBW.', // 12 盾出現＋肩
+  'SSAAGGGGGAA.WBW.', // 13 むね（金十字）
+  'SSAAGGGGGAA.WBW.', // 14
+  'SSAAGGGGGAA.WBW.', // 15
+  'SSAAAAAAAAA.GGGG', // 16 鍔（つば）
+  'SSAAAAAAAAA..HH.', // 17 にぎり
+  '.SSAAAAAAAA..G..', // 18 盾せばまる＋柄頭
+  '....RRRRRR......', // 19 こしから下
+  '....RRR.RRR.....', // 20 足ぶんかれ
+  '....RRR.RRR.....', // 21
+  '....RRR.RRR.....', // 22
+  '...KKKK.KKKK....', // 23 ブーツ
+];
+const warrior16 = pixelArt(warrior16Grid, PAL);
+
+// ─── 24×36（A+作戦：高精細）───────────────────────────────────
+const warrior24Grid = [
+  //           1111111111222222
+  // 0123456789012345678901234
+  '...........RR...........', // 0  かぶと尖端
+  '..........RRRR..........', // 1
+  '.........RRRRRR.........', // 2
+  '........RRRRRRRR....W...', // 3  剣先
+  '.......RRRRRRRRRR..WBW..', // 4
+  '......RRRRRRRRRRRR.WBW..', // 5  かぶと最大幅
+  '......RGGGGGGGGGGR.WBW..', // 6  金の鉢巻
+  '......RRRRRRRRRRRR.WBW..', // 7
+  '......RRFFFFFFFFRR.WBW..', // 8  顔開始
+  '......RRFFFFFFFFRR.WBW..', // 9
+  '......RRFEFFFFEFRR.WBW..', // 10 目
+  '......RRFFFFFFFFRR.WBW..', // 11
+  '......RRFFMMMMFFRR.WBW..', // 12 口
+  '.......RFFFFFFFFR..WBW..', // 13 かぶと細る
+  '........FFFFFFFF...WBW..', // 14 あご
+  '........AAAAAAAA...WBW..', // 15 えり
+  '.......AAAAAAAAAA..WBW..', // 16 肩
+  '......AAAAAAAAAAAA.WBW..', // 17 肩あて
+  '...SSSAAAAAAAAAAAA.WBW..', // 18 盾出現
+  '..SSSSAAGGGGGGAAAA.WBW..', // 19 むね（金十字）
+  '..SSSSAAGGGGGGAAAA.WBW..', // 20
+  '..SSSSAAGGGGGGAAAA.WBW..', // 21
+  '..SSSSAAAAAAAAAAAA.WBW..', // 22
+  '..SSSSAAAAAAAAAAAAGGGGGG', // 23 つば
+  '..SSSSAAAAAAAAAAAA..HH..', // 24 にぎり
+  '..SSSSAAAAAAAAAAAA..HH..', // 25
+  '...SSS.AAAAAAAAAA...HH..', // 26 盾せばまる
+  '........RRRRRRRR....G...', // 27 こし布＋柄頭
+  '........RRRRRRRR........', // 28
+  '........RRRRRRRR........', // 29
+  '........RRR..RRR........', // 30 足
+  '........RRR..RRR........', // 31
+  '........RRR..RRR........', // 32
+  '........RRR..RRR........', // 33
+  '........KKK..KKK........', // 34 ブーツ上
+  '.......KKKK..KKKK.......', // 35 ブーツ広がり
+];
+const warrior24 = pixelArt(warrior24Grid, PAL);
+
+// ─── 32×48（超高精細）────────────────────────────────────────
+const warrior32Grid = [
+  //           1111111111222222222233
+  // 0123456789012345678901234567890123
+  '..............RR..........W.....', // 0  剣先
+  '.............RRRR........WBW....', // 1
+  '............RRRRRR.......WBW....', // 2
+  '...........RRRRRRRR......WBW....', // 3
+  '..........RRRRRRRRRR.....WBW....', // 4
+  '.........RRRRRRRRRRRR....WBW....', // 5
+  '........RRRRRRRRRRRRRR...WBW....', // 6
+  '........RGGGGGGGGGGGGR...WBW....', // 7  金の鉢巻
+  '........RRRRRRRRRRRRRR...WBW....', // 8
+  '........RRFFFFFFFFFFRR...WBW....', // 9  顔
+  '........RRFFFFFFFFFFRR...WBW....', // 10
+  '........RRFFEEFFEEFFRR...WBW....', // 11 目
+  '........RRFFFFFFFFFFRR...WBW....', // 12
+  '........RRFFMMMMMMFFRR...WBW....', // 13 口
+  '........RRFFFFFFFFFFRR...WBW....', // 14
+  '.........RFFFFFFFFFFR....WBW....', // 15 兜細る
+  '..........FFFFFFFFFF.....WBW....', // 16 あご
+  '..........FFFFFFFFFF.....WBW....', // 17
+  '..........AAAAAAAAAA.....WBW....', // 18 えり
+  '.........AAAAAAAAAAAA....WBW....', // 19
+  '........AAAAAAAAAAAAAA...WBW....', // 20 肩
+  '.......AAAAAAAAAAAAAAAA..WBW....', // 21 肩あて
+  '....SSSAAAAAAAAAAAAAAAA..WBW....', // 22 盾出現
+  '...SSSSSAAAAAAAAAAAAAAAA.WBW....', // 23
+  '..SSSSSSSAAAAGGGGGGAAAA..WBW....', // 24 金十字上
+  '..SSSSSSSAAAAGGGGGGAAAA..WBW....', // 25
+  '..SSSSSSSAAAGGGGGGGGAAA..WBW....', // 26 十字広がる
+  '..SSSSSSSAAAGGGGGGGGAAA..WBW....', // 27
+  '..SSSSSSSAAAAGGGGGGAAAA..WBW....', // 28
+  '..SSSSSSSAAAAAAAAAAAAAA..WBW....', // 29
+  '..SSSSSSSAAAAAAAAAAAAAA..WBW....', // 30
+  '..SSSSSSSAAAAAAAAAAAAAA.GGGGGGGG', // 31 つば
+  '..SSSSSSSAAAAAAAAAAAAAA..GGGGGG.', // 32 つば下段
+  '..SSSSSSSAAAAAAAAAAAAAA...HH....', // 33 にぎり
+  '...SSSSS.AAAAAAAAAAAAAA...HH....', // 34 盾せばまる
+  '....SSS..AAAAAAAAAAAAAA...HH....', // 35
+  '..........AAAAAAAAAA......HH....', // 36 ベルト
+  '..........RRRRRRRRRR.......G....', // 37 こし布＋柄頭
+  '..........RRRRRRRRRR............', // 38
+  '..........RRRRRRRRRR............', // 39
+  '..........RRR....RRR............', // 40 足
+  '..........RRR....RRR............', // 41
+  '..........RRR....RRR............', // 42
+  '..........RRR....RRR............', // 43
+  '..........RRR....RRR............', // 44
+  '..........RRR....RRR............', // 45
+  '..........KKK....KKK............', // 46 ブーツ上
+  '.........KKKKK..KKKKK...........', // 47 ブーツ広がり
+];
+const warrior32 = pixelArt(warrior32Grid, PAL);
+
+// ─── スプライト定義 ─────────────────────────────────────────
+const VARIANTS = [
+  { key: '12x16', label: '現状（12×16）',    w: 12, h: 16, parts: warrior12, note: '今の本番' },
+  { key: '16x24', label: 'A作戦（16×24）',   w: 16, h: 24, parts: warrior16, note: '中精細' },
+  { key: '24x36', label: 'A+作戦（24×36）',  w: 24, h: 36, parts: warrior24, note: '高精細' },
+  { key: '32x48', label: '超高精細（32×48）', w: 32, h: 48, parts: warrior32, note: 'SFC級' },
+];
+
+function Sprite({ v, scale }) {
+  const w = v.w * scale;
+  const h = v.h * scale;
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${v.w} ${v.h}`}
+         style={{imageRendering:'pixelated', display:'block'}}
+         shapeRendering="crispEdges"
+         xmlns="http://www.w3.org/2000/svg">
+      <g dangerouslySetInnerHTML={{__html: v.parts}}/>
+    </svg>
+  );
+}
+
+function App() {
+  // 同サイズ比較用：すべて高さ 288px にそろえる
+  const COMMON_H = 288;
+  return (
+    <div className="lab-wrap">
+      <div className="lab-title">▼ スプライト解像度くらべ ▼</div>
+      <div className="lab-sub">
+        どの解像度で「せんし」をかきなおすか、目で見てえらんでください。<br/>
+        ※ 各キャラデザインは「ころせんせい試作」。本番ではより練り込みます。
+      </div>
+
+      {/* セクション1: 実装時サイズ（4倍表示） */}
+      <div className="dq-window">
+        <div className="dq-title-bar">じっそうサイズ（ネイティブ×4倍ひょうじ）</div>
+        <div className="dq-content row">
+          {VARIANTS.map(v => (
+            <div key={v.key} className="cell">
+              <div className="cell-sprite">
+                <Sprite v={v} scale={4}/>
+              </div>
+              <div className="cell-label">{v.label}</div>
+              <div className="cell-sub">
+                じっそう <b>{v.w * 4}×{v.h * 4}px</b>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* セクション2: 同サイズ比較 */}
+      <div className="dq-window">
+        <div className="dq-title-bar">どうサイズ比較（たかさ {COMMON_H}px に統一）</div>
+        <div className="dq-content row">
+          {VARIANTS.map(v => {
+            const scale = COMMON_H / v.h;
+            return (
+              <div key={v.key} className="cell">
+                <div className="cell-sprite">
+                  <Sprite v={v} scale={scale}/>
+                </div>
+                <div className="cell-label">{v.label}</div>
+                <div className="cell-sub">
+                  <b>{v.note}</b>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* セクション3: データサイズ比較表 */}
+      <div className="dq-window">
+        <div className="dq-title-bar">データりょう比較</div>
+        <div className="dq-content">
+          <table className="info-table">
+            <thead>
+              <tr>
+                <th>解像度</th>
+                <th className="num">ピクセル数</th>
+                <th className="num">対 現状比</th>
+                <th>備考</th>
+              </tr>
+            </thead>
+            <tbody>
+              {VARIANTS.map(v => {
+                const pixels = v.w * v.h;
+                const ratio = (pixels / (12*16)).toFixed(1);
+                return (
+                  <tr key={v.key}>
+                    <td>{v.label}</td>
+                    <td className="num">{pixels}</td>
+                    <td className="num">×{ratio}</td>
+                    <td>{v.note}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div style={{marginTop:16, fontSize:8, color:'#a0c0ff', lineHeight:1.8}}>
+            ※ 1ピクセル＝1 SVG &lt;rect&gt; 換算。解像度を上げるほど描画コードは大きくなりますが、<br/>
+            　現代のブラウザでは32×48程度でも余裕で動きます。問題はオーナーの「絵づくりコスト」のほうです。
+          </div>
+        </div>
+      </div>
+
+      <div style={{textAlign:'center', fontSize:8, color:'#606080', marginTop:16}}>
+        実験室ページ（sprite-lab.html）— 本番からはリンクされていません
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
