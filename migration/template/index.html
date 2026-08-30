@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>TOMMY GAMES</title>
+<meta name="description" content="Tommy Games — ブラウザで遊べる自作ゲーム置き場">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #05060f;
+    --bg-grid:   #101a3a;
+    --panel:     #0b1030;
+    --panel-in:  #060a22;
+    --border:    #3a4a8c;
+    --accent:    #ffec40;
+    --accent-2:  #40e0ff;
+    --text:      #c0d8ff;
+    --text-dim:  #7a90c8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse at 50% -10%, #1a2a6c22 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 3px, #ffffff05 3px 4px),
+      var(--bg);
+    color: var(--text);
+    font-family: 'Press Start 2P', 'DotGothic16', monospace;
+    padding: calc(24px + env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom));
+    -webkit-text-size-adjust: 100%;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 40px; }
+  h1 {
+    font-size: clamp(20px, 6vw, 40px);
+    line-height: 1.4;
+    margin: 0 0 16px;
+    color: var(--accent);
+    text-shadow: 0 0 12px #ffec4066, 4px 4px 0 #00000099;
+    letter-spacing: 2px;
+  }
+  .tagline { font-size: 10px; color: var(--text-dim); line-height: 1.9; margin: 0; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+  @media (min-width: 640px) { .grid { grid-template-columns: 1fr 1fr; } }
+
+  .card {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: var(--panel);
+    border: 3px solid var(--border);
+    box-shadow: inset 0 0 0 2px var(--panel-in), 0 6px 0 #00000066;
+    padding: 18px 16px;
+    color: inherit;
+    text-decoration: none;
+    min-height: 44px;
+    transition: transform .12s steps(2), border-color .12s, box-shadow .12s;
+  }
+  .card:hover, .card:focus-visible {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 2px var(--panel-in), 0 10px 0 #00000066, 0 0 24px #ffec4033;
+    outline: none;
+  }
+  .card .emoji { font-size: 30px; line-height: 1; flex-shrink: 0; filter: drop-shadow(0 0 8px #40e0ff55); }
+  .card .body { min-width: 0; }
+  .card h2 {
+    font-size: 12px;
+    line-height: 1.7;
+    margin: 2px 0 10px;
+    color: var(--accent);
+    word-break: break-word;
+  }
+  .card p { font-size: 9px; line-height: 2; margin: 0 0 10px; color: var(--text); }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-size: 8px;
+    padding: 4px 7px;
+    border: 1px solid var(--border);
+    color: var(--accent-2);
+    background: #40e0ff11;
+  }
+
+  .state { text-align: center; font-size: 10px; line-height: 2; color: var(--text-dim); padding: 40px 0; }
+  footer { margin-top: 44px; text-align: center; font-size: 8px; line-height: 2.2; color: var(--text-dim); }
+  footer a { color: var(--accent-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>TOMMY GAMES</h1>
+    <p class="tagline">ブラウザで あそべる じさく ゲーム おきば<br>すきな ゲームを えらんでください</p>
+  </header>
+
+  <main id="grid" class="grid" aria-live="polite"></main>
+  <p id="state" class="state">よみこみちゅう…</p>
+
+  <footer>
+    ビルドふよう / GitHub Pages で こうかい<br>
+    <a href="https://github.com/oshou35/tommy-games">github.com/oshou35/tommy-games</a>
+  </footer>
+</div>
+
+<script>
+  // 通常は deploy.yml が games/*/game.json から生成した games.json を読む。
+  // file:// で直接開いたときは fetch が失敗するので、下のフォールバックを使う。
+  var FALLBACK = [
+    { slug: 'guild-registration', title: '冒険者ギルド', emoji: '🛡️',
+      description: 'ドラゴンクエストふうの ぼうけんしゃギルド。とうろく・そうび・じゅもん・バトル。',
+      tags: ['RPG', 'React'], url: './guild-registration/' },
+    { slug: 'goki100', title: 'ゴキブリは1匹みたら100匹いると思え', emoji: '🪳',
+      description: 'いえの なかで ゴキブリを ふやして 100ぴきを めざす 3D いくせいゲーム。',
+      tags: ['3D', 'Three.js'], url: './goki100/' },
+    { slug: 'crowd-run', title: 'crowd-run', emoji: '🏃',
+      description: 'たたかいながら クイズに こたえて ぐんだんを ふやす 3レーン シューター。',
+      tags: ['3D', 'Three.js'], url: './crowd-run/' }
+  ];
+
+  function render(games) {
+    var grid = document.getElementById('grid');
+    var state = document.getElementById('state');
+
+    if (!games.length) {
+      state.textContent = 'まだ ゲームが ありません';
+      return;
+    }
+    state.hidden = true;
+
+    games.forEach(function (g) {
+      var a = document.createElement('a');
+      a.className = 'card';
+      a.href = g.url || ('./' + g.slug + '/');
+
+      var emoji = document.createElement('div');
+      emoji.className = 'emoji';
+      emoji.textContent = g.emoji || '🎮';
+      emoji.setAttribute('aria-hidden', 'true');
+
+      var body = document.createElement('div');
+      body.className = 'body';
+
+      var h2 = document.createElement('h2');
+      h2.textContent = g.title || g.slug;
+      body.appendChild(h2);
+
+      if (g.description) {
+        var p = document.createElement('p');
+        p.textContent = g.description;
+        body.appendChild(p);
+      }
+
+      if (g.tags && g.tags.length) {
+        var tags = document.createElement('div');
+        tags.className = 'tags';
+        g.tags.forEach(function (t) {
+          var span = document.createElement('span');
+          span.className = 'tag';
+          span.textContent = t;
+          tags.appendChild(span);
+        });
+        body.appendChild(tags);
+      }
+
+      a.appendChild(emoji);
+      a.appendChild(body);
+      grid.appendChild(a);
+    });
+  }
+
+  fetch('./games.json', { cache: 'no-cache' })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(render)
+    .catch(function () { render(FALLBACK); });
+</script>
+</body>
+</html>

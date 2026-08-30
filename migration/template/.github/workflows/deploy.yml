@@ -1,0 +1,159 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'games/**'
+      - 'index.html'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    env:
+      SLACK_WEBHOOK: ${{ secrets.SLACKWEBHOOKURL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # games/<name>/src/ を _site/<name>/ に並べ、
+      # games/<name>/game.json を集めて _site/games.json を作り、ルートにランチャーを置く
+      - name: Assemble site
+        run: |
+          set -eu
+          rm -rf _site
+          mkdir -p _site
+          cp index.html _site/index.html
+          for dir in games/*/; do
+            name=$(basename "$dir")
+            if [ ! -d "$dir/src" ]; then
+              echo "skip (no src/): $name"
+              continue
+            fi
+            mkdir -p "_site/$name"
+            cp -r "$dir/src/." "_site/$name/"
+            echo "packed: $name"
+          done
+          python3 - <<'PYEOF'
+          import json, os, glob
+
+          games = []
+          for path in sorted(glob.glob('games/*/')):
+              slug = os.path.basename(path.rstrip('/'))
+              if not os.path.isdir(os.path.join(path, 'src')):
+                  continue
+              meta = {}
+              meta_path = os.path.join(path, 'game.json')
+              if os.path.exists(meta_path):
+                  with open(meta_path, encoding='utf-8') as f:
+                      meta = json.load(f)
+              games.append({
+                  'slug': slug,
+                  'title': meta.get('title', slug),
+                  'description': meta.get('description', ''),
+                  'emoji': meta.get('emoji', '🎮'),
+                  'tags': meta.get('tags', []),
+                  'url': f'./{slug}/',
+              })
+
+          with open('_site/games.json', 'w', encoding='utf-8') as f:
+              json.dump(games, f, ensure_ascii=False, indent=2)
+          print(f'games.json: {len(games)} entries')
+          PYEOF
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Build Slack payload
+        if: ${{ env.SLACK_WEBHOOK != '' }}
+        run: |
+          python3 << 'PYEOF'
+          import subprocess, json, re
+
+          before = '${{ github.event.before }}'
+          current = '${{ github.sha }}'
+          rng = [f'{before}..{current}'] if before and before != '0' * 40 else ['-1']
+
+          text = subprocess.run(
+              ['git', 'log', '--pretty=format:%B[COMMIT_END]', *rng],
+              capture_output=True, text=True
+          ).stdout
+
+          changed = subprocess.run(
+              ['git', 'diff', '--name-only', *( [f'{before}', f'{current}'] if before and before != '0' * 40 else ['HEAD~1', 'HEAD'] )],
+              capture_output=True, text=True
+          ).stdout
+          games = sorted({p.split('/')[1] for p in changed.split('\n') if p.startswith('games/') and len(p.split('/')) > 1})
+
+          version_match = re.search(r'ver\.\s*\d+\.\d+\.\d+', text)
+          version = version_match.group(0) if version_match else 'バージョン不明'
+
+          def extract_section(text, tag):
+              items, in_section = [], False
+              for line in text.split('\n'):
+                  stripped = line.strip()
+                  if stripped == f'[{tag}]':
+                      in_section = True
+                      continue
+                  if re.match(r'^\[(add|fix|change|COMMIT_END)\]$', stripped):
+                      in_section = False
+                  if in_section and stripped.startswith('-'):
+                      items.append(stripped)
+              return items
+
+          notes_parts = []
+          for tag, label in (('add', '*✨ 機能追加*'), ('fix', '*🐛 バグ修正*'), ('change', '*🔧 その他変更*')):
+              items = extract_section(text, tag)
+              if items:
+                  notes_parts.append(label + '\n' + '\n'.join(items))
+          notes = '\n'.join(notes_parts) if notes_parts else '（リリース情報なし）'
+
+          page_url = '${{ steps.deployment.outputs.page_url }}'
+          payload = {
+              "blocks": [
+                  {"type": "header", "text": {"type": "plain_text", "text": "🚀 Tommy Games — リリース完了！", "emoji": True}},
+                  {"type": "section", "fields": [
+                      {"type": "mrkdwn", "text": f"*ゲーム*\n{', '.join(games) if games else '（なし）'}"},
+                      {"type": "mrkdwn", "text": f"*バージョン*\n{version}"}
+                  ]},
+                  {"type": "section", "text": {"type": "mrkdwn", "text": f"*リリース情報*\n{notes}"}},
+                  {"type": "section", "text": {"type": "mrkdwn", "text": f"<{page_url}|▶ あそぶ>"}},
+                  {"type": "context", "elements": [
+                      {"type": "mrkdwn", "text": f"デプロイ者: @${{ github.actor }}　|　`{current[:7]}`"}
+                  ]}
+              ]
+          }
+
+          with open('slack_payload.json', 'w', encoding='utf-8') as f:
+              json.dump(payload, f, ensure_ascii=False)
+          PYEOF
+
+      - name: Notify Slack
+        if: ${{ env.SLACK_WEBHOOK != '' }}
+        uses: slackapi/slack-github-action@v2
+        with:
+          webhook: ${{ secrets.SLACKWEBHOOKURL }}
+          webhook-type: incoming-webhook
+          payload-file-path: slack_payload.json
